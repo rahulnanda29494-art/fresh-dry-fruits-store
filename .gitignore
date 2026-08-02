@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Env / secrets — NEVER commit these
+.env
+.env.*
+!.env.example
+
+# Build output
+web/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local portable Postgres data / prototype scratch
+pgsql-local/
+.image-slots.state.json
+.thumbnail
+
+# OS
+.DS_Store
+Thumbs.db

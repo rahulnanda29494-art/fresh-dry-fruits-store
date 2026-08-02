@@ -1,0 +1,40 @@
+# Render Blueprint — deploys Fresh Dry Fruits as ONE web service (Express API
+# that also serves the built React frontend) plus a managed PostgreSQL database.
+# In Render: New + → "Blueprint" → connect this repo → Apply.
+databases:
+  - name: fresh-dry-fruits-db
+    databaseName: fresh_dry_fruits
+    user: fdf
+    plan: free
+
+services:
+  - type: web
+    name: fresh-dry-fruits
+    runtime: node
+    plan: free
+    healthCheckPath: /api/health
+    # Build the frontend, then install the server, generate the Prisma client,
+    # run migrations against the managed DB, and seed the product catalogue.
+    buildCommand: >-
+      npm --prefix web install &&
+      npm --prefix web run build &&
+      npm --prefix server install &&
+      npm --prefix server run prisma:generate &&
+      npm --prefix server run prisma:deploy &&
+      npm --prefix server run seed
+    startCommand: npm --prefix server start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fresh-dry-fruits-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true          # Render generates a strong random secret
+      - key: NODE_ENV
+        value: production
+      # Optional: set these in the Render dashboard to enable REAL UPI/card
+      # charging. Left unset, checkout records simulated `test-paid` orders.
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false

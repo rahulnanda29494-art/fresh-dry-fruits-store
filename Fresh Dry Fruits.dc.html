@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Poppins:wght@300;400;500;600&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { font-family:'Poppins',sans-serif; color:#222222; background:#FFFDF8; -webkit-font-smoothing:antialiased; }
+  a { color:#6A4E2F; text-decoration:none; transition:color .25s ease; }
+  a:hover { color:#D4AF37; }
+  ::selection { background:#D4AF37; color:#1A1A1A; }
+  ::-webkit-scrollbar { width:10px; }
+  ::-webkit-scrollbar-thumb { background:#6A4E2F; border-radius:8px; }
+  ::-webkit-scrollbar-track { background:#F0EADF; }
+  @keyframes floatY { 0%,100%{ transform:translateY(0) rotate(-2deg);} 50%{ transform:translateY(-22px) rotate(2deg);} }
+  @keyframes floatY2 { 0%,100%{ transform:translateY(0) rotate(3deg);} 50%{ transform:translateY(-30px) rotate(-3deg);} }
+  @keyframes floatY3 { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-16px);} }
+  @keyframes shimmer { 0%{ background-position:-200% 0;} 100%{ background-position:200% 0;} }
+  @keyframes spinSlow { from{ transform:rotate(0);} to{ transform:rotate(360deg);} }
+  @keyframes marquee { from{ transform:translateX(0);} to{ transform:translateX(-50%);} }
+  @keyframes pulseRing { 0%{ box-shadow:0 0 0 0 rgba(212,175,55,.5);} 70%{ box-shadow:0 0 0 14px rgba(212,175,55,0);} 100%{ box-shadow:0 0 0 0 rgba(212,175,55,0);} }
+</style>
+</helmet>
+<div ref="{{ rootRef }}" data-surface="page" style="min-height:100vh; background:#FFFDF8; position:relative; overflow-x:hidden;">
+
+  <!-- ANNOUNCEMENT BAR -->
+  <div style="background:#1A1A1A; color:#F5EFE2; font-family:'Montserrat',sans-serif; font-size:12.5px; letter-spacing:.06em; overflow:hidden; white-space:nowrap;">
+    <div style="display:inline-flex; gap:56px; padding:10px 0; animation:marquee 32s linear infinite;">
+      <span>✦ &nbsp;FREE SHIPPING ON ORDERS OVER ₹1499</span>
+      <span>✦ &nbsp;USE CODE <b style="color:#D4AF37;">FRESH10</b> FOR 10% OFF YOUR FIRST BOX</span>
+      <span>✦ &nbsp;100% NATURAL · NO PRESERVATIVES</span>
+      <span>✦ &nbsp;📞 +91 93152 23605 &nbsp;·&nbsp; WhatsApp us anytime</span>
+      <span>✦ &nbsp;FREE SHIPPING ON ORDERS OVER ₹1499</span>
+      <span>✦ &nbsp;USE CODE <b style="color:#D4AF37;">FRESH10</b> FOR 10% OFF YOUR FIRST BOX</span>
+      <span>✦ &nbsp;100% NATURAL · NO PRESERVATIVES</span>
+      <span>✦ &nbsp;📞 +91 93152 23605 &nbsp;·&nbsp; WhatsApp us anytime</span>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <header data-surface="nav" style="position:sticky; top:0; z-index:60; background:rgba(255,253,248,.82); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); border-bottom:1px solid rgba(106,78,47,.12);">
+    <nav style="max-width:1360px; margin:0 auto; padding:16px clamp(14px,3vw,32px); display:flex; align-items:center; gap:clamp(10px,2vw,28px);">
+      <button onClick="{{ goHome }}" style="background:none; border:none; cursor:pointer; display:flex; align-items:center; gap:11px; padding:0; flex-shrink:0;">
+        <span style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#6A4E2F,#3f2e1a); display:grid; place-items:center; color:#D4AF37; font-family:'Playfair Display',serif; font-size:21px; font-weight:700; box-shadow:0 6px 18px rgba(106,78,47,.28); flex-shrink:0;">F</span>
+        <span style="text-align:left; line-height:1; white-space:nowrap;">
+          <span style="display:block; font-family:'Playfair Display',serif; font-size:clamp(15px,1.6vw,20px); font-weight:700; color:#6A4E2F; letter-spacing:.01em; white-space:nowrap;">Fresh Dry Fruits</span>
+          <span style="display:block; font-family:'Montserrat',sans-serif; font-size:8.5px; letter-spacing:.28em; color:#B08D3E; margin-top:3px; white-space:nowrap;">NATURE'S FINEST · SINCE 1998</span>
+        </span>
+      </button>
+
+      <div style="display:flex; align-items:center; gap:18px; margin-left:10px; font-family:'Montserrat',sans-serif; font-size:13px; font-weight:600; letter-spacing:.02em; white-space:nowrap; flex-shrink:0;">
+        <button onClick="{{ goHome }}" style="{{ navHomeStyle }}">Home</button>
+        <div ref="{{ megaWrap }}" style="position:relative;" onMouseEnter="{{ openMega }}" onMouseLeave="{{ closeMega }}">
+          <button onClick="{{ goShop }}" style="{{ navShopStyle }}">Shop ▾</button>
+          <div style="{{ megaStyle }}">
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px 34px;">
+              <sc-for list="{{ megaCats }}" as="c" hint-placeholder-count="9">
+                <button onClick="{{ c.onClick }}" style="text-align:left; background:none; border:none; cursor:pointer; padding:9px 10px; border-radius:10px; display:flex; align-items:center; gap:10px; font-family:'Poppins',sans-serif; font-size:13.5px; color:#3a2c1a; transition:background .2s;" style-hover="background:#F5EFE2;">
+                  <span style="font-size:16px;">{{ c.icon }}</span>
+                  <span>{{ c.name }}<span style="display:block; font-size:11px; color:#a08a63;">{{ c.count }}</span></span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <button onClick="{{ goAbout }}" style="{{ navAboutStyle }}">Our Story</button>
+        <button onClick="{{ goBlog }}" style="{{ navBlogStyle }}">Journal</button>
+      </div>
+
+      <div style="margin-left:auto; display:flex; align-items:center; gap:clamp(4px,0.8vw,8px); flex-shrink:0;">
+        <div ref="{{ searchWrap }}" style="{{ searchBoxStyle }}">
+          <span style="color:#B08D3E;">⌕</span>
+          <input ref="{{ searchInput }}" value="{{ search }}" onInput="{{ onSearchInput }}" placeholder="Search…" style="border:none; background:none; outline:none; font-family:'Poppins',sans-serif; font-size:13.5px; width:clamp(80px,9vw,190px); color:#3a2c1a;" />
+          <sc-if value="{{ hasSearch }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ runSearch }}" style="background:#6A4E2F; color:#fff; border:none; border-radius:8px; padding:6px 11px; font-size:11px; cursor:pointer; font-family:'Montserrat',sans-serif; font-weight:600;">Go</button>
+          </sc-if>
+        </div>
+        <button onClick="{{ toggleDark }}" title="Theme" style="{{ iconBtn }}">{{ darkIcon }}</button>
+        <button onClick="{{ goWishlist }}" title="Wishlist" style="{{ iconBtn }} flex-shrink:0;">♡<span style="{{ wishBadgeStyle }}">{{ wishCount }}</span></button>
+        <button title="Account" style="{{ iconBtn }} flex-shrink:0;">◔</button>
+        <button onClick="{{ openCart }}" title="Cart" style="position:relative; background:#6A4E2F; color:#fff; border:none; width:clamp(36px,3.5vw,44px); height:clamp(36px,3.5vw,44px); border-radius:50%; cursor:pointer; font-size:18px; display:grid; place-items:center; box-shadow:0 8px 20px rgba(106,78,47,.32); transition:transform .2s; flex-shrink:0;" style-hover="transform:translateY(-2px);">
+          ⛾<span style="{{ cartBadgeStyle }}">{{ cartCount }}</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- PAGE BODY -->
+  <main>
+
+    <!-- ===================== HOME ===================== -->
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <!-- HERO -->
+      <section style="position:relative; padding:70px 32px 90px; overflow:hidden;">
+        <div style="position:absolute; inset:0; background:radial-gradient(circle at 72% 30%, rgba(212,175,55,.16), transparent 46%), radial-gradient(circle at 15% 80%, rgba(139,195,74,.12), transparent 44%);"></div>
+        <div ref="{{ heroRef }}" style="position:relative; max-width:1360px; margin:0 auto; display:grid; grid-template-columns:1.05fr 1fr; gap:48px; align-items:center;">
+          <div>
+            <div style="display:inline-flex; align-items:center; gap:9px; background:#fff; border:1px solid rgba(212,175,55,.4); border-radius:100px; padding:7px 16px; font-family:'Montserrat',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:.12em; color:#B08D3E; box-shadow:0 6px 18px rgba(106,78,47,.08);">
+              <span style="width:7px; height:7px; border-radius:50%; background:#8BC34A; box-shadow:0 0 0 3px rgba(139,195,74,.25);"></span> HARVESTED THIS SEASON
+            </div>
+            <h1 style="font-family:'Playfair Display',serif; font-weight:700; font-size:clamp(34px,4.8vw,68px); line-height:1.12; color:#2a1f12; margin:26px 0 0; letter-spacing:-.01em;">
+              Nature's finest,<br><span style="font-style:italic; color:#6A4E2F;">delivered</span> <span style="position:relative; white-space:nowrap; display:inline-block;">fresh<span style="position:absolute; left:0; right:0; bottom:6px; height:11px; background:linear-gradient(90deg,#D4AF37,#e9cf82); z-index:-1; border-radius:3px;"></span></span>.
+            </h1>
+            <p style="font-size:17px; line-height:1.7; color:#5c4e3d; max-width:480px; margin:24px 0 0;">
+              Hand-selected nuts, dates & berries from the world's most celebrated orchards — sun-cured, never processed, and sealed at peak freshness for your table.
+            </p>
+            <div style="display:flex; gap:14px; margin-top:34px;">
+              <button onClick="{{ goShop }}" style="font-family:'Montserrat',sans-serif; font-weight:700; font-size:14px; letter-spacing:.03em; background:#6A4E2F; color:#fff; border:none; padding:17px 34px; border-radius:100px; cursor:pointer; box-shadow:0 14px 30px rgba(106,78,47,.32); transition:transform .25s, box-shadow .25s;" style-hover="transform:translateY(-3px); box-shadow:0 20px 40px rgba(106,78,47,.4);">Shop Now →</button>
+              <button onClick="{{ goShop }}" style="font-family:'Montserrat',sans-serif; font-weight:700; font-size:14px; letter-spacing:.03em; background:transparent; color:#6A4E2F; border:1.5px solid rgba(106,78,47,.35); padding:17px 30px; border-radius:100px; cursor:pointer; transition:background .25s,border-color .25s;" style-hover="background:#fff; border-color:#6A4E2F;">Explore Collection</button>
+            </div>
+            <div style="display:flex; gap:34px; margin-top:44px;">
+              <div><div style="font-family:'Playfair Display',serif; font-size:30px; font-weight:700; color:#6A4E2F;">40k+</div><div style="font-size:12.5px; color:#8a7a63; letter-spacing:.02em;">Happy customers</div></div>
+              <div style="width:1px; background:rgba(106,78,47,.15);"></div>
+              <div><div style="font-family:'Playfair Display',serif; font-size:30px; font-weight:700; color:#6A4E2F;">4.9★</div><div style="font-size:12.5px; color:#8a7a63; letter-spacing:.02em;">Avg. rating</div></div>
+              <div style="width:1px; background:rgba(106,78,47,.15);"></div>
+              <div><div style="font-family:'Playfair Display',serif; font-size:30px; font-weight:700; color:#6A4E2F;">12</div><div style="font-size:12.5px; color:#8a7a63; letter-spacing:.02em;">Countries sourced</div></div>
+            </div>
+          </div>
+
+          <!-- HERO VISUAL -->
+          <div ref="{{ heroArt }}" style="position:relative; height:520px;">
+            <div style="position:absolute; inset:6% 8%; border-radius:50%; background:conic-gradient(from 120deg,#f6ecd0,#fff8ea,#f1e4c4,#f6ecd0); animation:spinSlow 60s linear infinite; box-shadow:inset 0 0 80px rgba(212,175,55,.25);"></div>
+            <div style="position:absolute; inset:14%; border-radius:50%; overflow:hidden; box-shadow:0 40px 80px rgba(106,78,47,.28), inset 0 0 0 1px rgba(255,255,255,.6);">
+              <image-slot id="hero-main" shape="rect" fit="cover" placeholder="Drop hero image — bowl of premium dry fruits"></image-slot>
+            </div>
+            <div data-float="1" style="position:absolute; top:2%; right:6%; width:132px; height:132px; border-radius:24px; overflow:hidden; box-shadow:0 24px 44px rgba(106,78,47,.3); border:5px solid #fff; animation:floatY 7s ease-in-out infinite;">
+              <image-slot id="hero-f1" shape="rect" placeholder="Almonds"></image-slot>
+            </div>
+            <div data-float="1" style="position:absolute; bottom:4%; left:-2%; width:150px; height:150px; border-radius:50%; overflow:hidden; box-shadow:0 24px 44px rgba(106,78,47,.3); border:5px solid #fff; animation:floatY2 9s ease-in-out infinite;">
+              <image-slot id="hero-f2" shape="rect" placeholder="Pistachios"></image-slot>
+            </div>
+            <div data-float="1" style="position:absolute; bottom:22%; right:-3%; width:112px; height:112px; border-radius:20px; overflow:hidden; box-shadow:0 20px 38px rgba(106,78,47,.28); border:5px solid #fff; animation:floatY3 6s ease-in-out infinite;">
+              <image-slot id="hero-f3" shape="rect" placeholder="Dates"></image-slot>
+            </div>
+            <div style="position:absolute; top:44%; left:2%; background:#fff; border-radius:16px; padding:12px 16px; box-shadow:0 18px 36px rgba(106,78,47,.18); display:flex; align-items:center; gap:10px; animation:floatY3 8s ease-in-out infinite;">
+              <span style="width:34px;height:34px;border-radius:50%;background:#EAF3DC;display:grid;place-items:center;font-size:16px;">🌿</span>
+              <span style="line-height:1.2;"><b style="font-family:'Playfair Display',serif;font-size:15px;color:#6A4E2F;">No preservatives</b><br><span style="font-size:11px;color:#8a7a63;">Ever. Guaranteed.</span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRUST BADGES -->
+      <section style="border-top:1px solid rgba(106,78,47,.1); border-bottom:1px solid rgba(106,78,47,.1); background:#fff;">
+        <div style="max-width:1360px; margin:0 auto; padding:26px 32px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px;">
+          <sc-for list="{{ trustBadges }}" as="b" hint-placeholder-count="6">
+            <div data-reveal style="display:flex; align-items:center; gap:12px;">
+              <span style="font-size:23px;">{{ b.icon }}</span>
+              <span style="font-family:'Montserrat',sans-serif; font-weight:600; font-size:13px; color:#4a3a26; letter-spacing:.02em;">{{ b.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- CATEGORIES -->
+      <section style="max-width:1360px; margin:0 auto; padding:96px 32px 40px;">
+        <div data-reveal style="text-align:center; max-width:640px; margin:0 auto 52px;">
+          <span style="font-family:'Montserrat',sans-serif; font-size:12px; letter-spacing:.24em; color:#B08D3E; font-weight:600;">CURATED COLLECTIONS</span>
+          <h2 style="font-family:'Playfair Display',serif; font-size:clamp(30px,4vw,44px); font-weight:700; color:#2a1f12; margin:14px 0 0;">Shop by category</h2>
+          <p style="color:#6c5c47; margin-top:12px; font-size:15.5px;">Nine hand-picked collections, from everyday snacking to grand gifting.</p>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px;">
+          <sc-for list="{{ categories }}" as="c" hint-placeholder-count="8">
+            <button data-reveal onClick="{{ c.onClick }}" style="{{ c.tileStyle }}">
+              <div style="position:absolute; inset:0;">
+                <image-slot id="{{ c.slotId }}" shape="rect" placeholder="{{ c.ph }}"></image-slot>
+              </div>
+              <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(26,20,12,.82) 6%, rgba(26,20,12,.15) 55%, transparent); pointer-events:none;"></div>
+              <div style="position:absolute; left:0; right:0; bottom:0; padding:20px; text-align:left; pointer-events:none;">
+                <span style="display:block; font-size:24px; margin-bottom:4px;">{{ c.icon }}</span>
+                <span style="display:block; font-family:'Playfair Display',serif; font-size:21px; font-weight:600; color:#fff;">{{ c.name }}</span>
+                <span style="display:block; font-family:'Montserrat',sans-serif; font-size:11px; letter-spacing:.08em; color:#e6d7b0; margin-top:2px;">{{ c.count }} · SHOP →</span>
+              </div>
+            </button>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- BEST SELLERS -->
+      <section style="max-width:1360px; margin:0 auto; padding:72px 32px 40px;">
+        <div data-reveal style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:40px; flex-wrap:wrap; gap:16px;">
+          <div>
+            <span style="font-family:'Montserrat',sans-serif; font-size:12px; letter-spacing:.24em; color:#B08D3E; font-weight:600;">MOST LOVED</span>
+            <h2 style="font-family:'Playfair Display',serif; font-size:clamp(30px,4vw,44px); font-weight:700; color:#2a1f12; margin:12px 0 0;">Best sellers</h2>
+          </div>
+          <button onClick="{{ goShop }}" style="font-family:'Montserrat',sans-serif; font-weight:600; font-size:13px; background:none; border:1.5px solid rgba(106,78,47,.3); color:#6A4E2F; padding:12px 24px; border-radius:100px; cursor:pointer; transition:background .2s;" style-hover="background:#fff;">View all products →</button>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:22px;">
+          <sc-for list="{{ bestSellers }}" as="p" hint-placeholder-count="4">
+            <dc-import name="ProductCard" p="{{ p }}" hint-size="100%,420px"></dc-import>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- PREMIUM BANNER -->
+      <section style="max-width:1360px; margin:88px auto 0; padding:0 32px;">
+        <div data-reveal style="position:relative; border-radius:32px; overflow:hidden; background:linear-gradient(120deg,#3f2e1a,#6A4E2F 60%,#7d5c34); padding:70px 60px; display:grid; grid-template-columns:1.2fr 1fr; gap:40px; align-items:center;">
+          <div style="position:absolute; top:-40px; right:-40px; width:300px; height:300px; border-radius:50%; background:radial-gradient(circle,rgba(212,175,55,.4),transparent 70%);"></div>
+          <div style="position:relative;">
+            <span style="font-family:'Montserrat',sans-serif; font-size:12px; letter-spacing:.24em; color:#D4AF37; font-weight:600;">THE SIGNATURE GIFT</span>
+            <h2 style="font-family:'Playfair Display',serif; font-size:clamp(30px,4vw,46px); font-weight:700; color:#fff; margin:16px 0 0; line-height:1.1;">The Maharaja Box</h2>
+            <p style="color:#e8ddc9; font-size:16px; line-height:1.7; margin:16px 0 0; max-width:440px;">Nine of our finest varieties, presented in a handcrafted keepsake box with gold-foil detailing. The gift that says everything.</p>
+            <div style="display:flex; align-items:center; gap:20px; margin-top:30px;">
+              <button onClick="{{ goShop }}" style="font-family:'Montserrat',sans-serif; font-weight:700; font-size:14px; background:#D4AF37; color:#1A1A1A; border:none; padding:16px 32px; border-radius:100px; cursor:pointer; box-shadow:0 14px 30px rgba(212,175,55,.35); transition:transform .2s;" style-hover="transform:translateY(-3px);">Gift the Maharaja →</button>
+              <div style="color:#fff;"><span style="font-family:'Playfair Display',serif; font-size:28px; font-weight:700;">₹2,499</span> <span style="text-decoration:line-through; color:#c9b083; font-size:15px;">₹3,200</span></div>
+            </div>
+          </div>
+          <div style="position:relative; height:280px;">
+            <div style="position:absolute; inset:0; border-radius:22px; overflow:hidden; box-shadow:0 30px 60px rgba(0,0,0,.35); border:5px solid rgba(255,255,255,.12);">
+              <image-slot id="banner-gift" shape="rect" placeholder="Luxury gift box photo"></image-slot>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- HEALTH BENEFITS -->
+      <section style="background:#fff; margin-top:88px; border-top:1px solid rgba(106,78,47,.08); border-bottom:1px solid rgba(106,78,47,.08);">
+        <div style="max-width:1360px; margin:0 auto; padding:88px 32px;">
+          <div data-reveal style="text-align:center; max-width:620px; margin:0 auto 56px;">
+            <span style="font-family:'Montserrat',sans-serif; font-size:12px; letter-spacing:.24em; color:#B08D3E; font-weight:600;">WELLNESS IN EVERY BITE</span>
+            <h2 style="font-family:'Playfair Display',serif; font-size:clamp(30px,4vw,44px); font-weight:700; color:#2a1f12; margin:14px 0 0;">Nourishment, naturally</h2>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:22px;">
+            <sc-for list="{{ benefits }}" as="b" hint-placeholder-count="4">
+              <div data-reveal style="text-align:center; padding:34px 22px; border-radius:20px; background:#FFFDF8; border:1px solid rgba(106,78,47,.08); transition:transform .3s, box-shadow .3s;" style-hover="transform:translateY(-6px); box-shadow:0 24px 50px rgba(106,78,47,.12);">
+                <div style="width:70px; height:70px; margin:0 auto 18px; border-radius:50%; background:linear-gradient(135deg,#EAF3DC,#d9ecbf); display:grid; place-items:center; font-size:30px;">{{ b.icon }}</div>
+                <div style="font-family:'Playfair Display',serif; font-size:34px; font-weight:700; color:#6A4E2F;">{{ b.stat }}</div>
+                <div style="font-family:'Montserrat',sans-serif; font-size:13px; font-weight:600; color:#3a2c1a; margin-top:4px;">{{ b.title }}</div>
+                <div style="font-size:13px; color:#8a7a63; margin-top:8px; line-height:1.55;">{{ b.desc }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+
+      <!-- TESTIMONIALS -->
+      <section style="max-width:1360px; margin:0 auto; padding:92px 32px;">
+        <div data-reveal style="text-align:center; max-width:620px; margin:0 auto 20px;">
+          <span style="font-family:'Montserrat',sans-serif; font-size:12px; letter-spacing:.24em; color:#B08D3E; font-weight:600;">FROM OUR FAMILY OF 40,000+</span>
+          <h2 style="font-family:'Playfair Display',serif; font-size:clamp(30px,4vw,44px); font-weight:700; color:#2a1f12; margin:14px 0 0;">Loved & trusted</h2>
+        </div>
+        <div style="position:relative; max-width:820px; margin:40px auto 0; text-align:center; min-height:230px;">
+          <div style="font-family:'Playfair Display',serif; font-size:90px; color:#e4d3a6; line-height:0; height:40px;">“</div>
+          <p style="font-family:'Playfair Display',serif; font-style:italic; font-size:26px; line-height:1.5; color:#3a2c1a; transition:opacity .4s;" ref="{{ tQuote }}">{{ activeT.text }}</p>
+          <div style="margin-top:24px; color:#D4AF37; font-size:16px; letter-spacing:3px;">★★★★★</div>
+          <div style="font-family:'Montserrat',sans-serif; font-weight:700; font-size:14px; color:#6A4E2F; margin-top:12px;">{{ activeT.name }}</div>
+          <div style="font-size:12.5px; color:#8a7a63;">{{ activeT.location }} · <span style="color:#8BC34A;">✓ Verified buyer</span></div>
+          <div style="display:flex; gap:8px; justify-content:center; margin-top:26px;">
+            <sc-for list="{{ testiDots }}" as="d" hint-placeholder-count="4">
+              <button onClick="{{ d.onClick }}" style="{{ d.style }}"></button>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+
+      <!-- INSTAGRAM -->
+      <section style="max-width:1360px; margin:0 auto; padding:0 32px 40px;">
+        <div data-reveal style="text-align:center; margin-bottom:34px;">
+          <h2 style="font-family:'Playfair Display',serif; font-size:32px; font-weight:700; color:#2a1f12;">@freshdryfruits</h2>
+          <p style="color:#8a7a63; font-size:14px; margin-top:6px;">Tag us to be featured — real tables, real moments.</p>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(6,1fr); gap:12px;">
+          <sc-for list="{{ instaSlots }}" as="s" hint-placeholder-count="6">
+            <div style="position:relative; aspect-ratio:1; border-radius:14px; overflow:hidden; cursor:pointer;">
+              <image-slot id="{{ s.id }}" shape="rect" placeholder="IG"></image-slot>
+              <div style="position:absolute; inset:0; background:rgba(106,78,47,0); display:grid; place-items:center; color:#fff; font-size:22px; opacity:0; transition:.3s;" style-hover="background:rgba(106,78,47,.4); opacity:1;">♡</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- NEWSLETTER -->
+      <section style="max-width:1360px; margin:60px auto 100px; padding:0 32px;">
+        <div data-reveal style="background:linear-gradient(120deg,#FFF6E3,#FDEFD0); border:1px solid rgba(212,175,55,.35); border-radius:28px; padding:56px; text-align:center; position:relative; overflow:hidden;">
+          <h2 style="font-family:'Playfair Display',serif; font-size:38px; font-weight:700; color:#2a1f12;">Join the inner circle</h2>
+          <p style="color:#6c5c47; font-size:15.5px; margin:12px auto 0; max-width:480px;">Seasonal drops, private harvest sales & a recipe every fortnight. Plus 10% off your first order.</p>
+          <form onSubmit="{{ onSubscribe }}" style="display:flex; gap:10px; max-width:460px; margin:28px auto 0;">
+            <input ref="{{ subEmail }}" type="email" required placeholder="your@email.com" style="flex:1; border:1.5px solid rgba(106,78,47,.25); background:#fff; border-radius:100px; padding:15px 22px; font-family:'Poppins',sans-serif; font-size:14px; outline:none; color:#3a2c1a;" />
+            <button type="submit" style="font-family:'Montserrat',sans-serif; font-weight:700; font-size:14px; background:#6A4E2F; color:#fff; border:none; padding:15px 30px; border-radius:100px; cursor:pointer; white-space:nowrap;">{{ subLabel }}</button>
+          </form>
+        </div>
+      </section>
+    </div>
+    </sc-if>
+
+    <!-- ===================== SHOP ===================== -->
+    <sc-if value="{{ isShop }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <section style="background:#fff; border-bottom:1px solid rgba(106,78,47,.1); padding:44px 32px;">
+        <div style="max-width:1360px; margin:0 auto;">
+          <div style="font-size:12.5px; color:#8a7a63;"><a href="#" onClick="{{ goHome }}">Home</a> / <span style="color:#6A4E2F;">Shop</span></div>
+          <h1 style="font-family:'Playfair Display',serif; font-size:42px; font-weight:700; color:#2a1f12; margin-top:10px;">Shop All</h1>
+          <p style="color:#8a7a63; font-size:14.5px; margin-top:6px;">{{ resultCount }} products found</p>
+        </div>
+      </section>
+      <section style="max-width:1360px; margin:0 auto; padding:44px 32px 100px; display:grid; grid-template-columns:260px 1fr; gap:40px; align-items:start;">
+        <aside style="background:#fff; border:1px solid rgba(106,78,47,.1); border-radius:20px; padding:24px; position:sticky; top:100px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+            <span style="font-family:Montserrat,sans-serif; font-weight:700; font-size:13px; color:#2a1f12; letter-spacing:.04em;">FILTERS</span>
+            <button onClick="{{ clearFilters }}" style="background:none; border:none; color:#B08D3E; font-size:12px; cursor:pointer; text-decoration:underline;">Clear</button>
+          </div>
+          <div style="font-family:Montserrat,sans-serif; font-weight:600; font-size:12px; color:#4a3a26; margin:18px 0 10px;">CATEGORY</div>
+          <sc-for list="{{ catFilters }}" as="c" hint-placeholder-count="8">
+            <label style="display:flex; align-items:center; gap:10px; padding:6px 0; font-size:13.5px; color:#4a3a26; cursor:pointer;">
+              <input type="checkbox" checked="{{ c.checked }}" onChange="{{ c.onToggle }}" style="width:16px; height:16px; accent-color:#6A4E2F;" />{{ c.name }}
+            </label>
+          </sc-for>
+          <div style="font-family:Montserrat,sans-serif; font-weight:600; font-size:12px; color:#4a3a26; margin:20px 0 10px;">MAX PRICE: {{ fMaxLabel }}</div>
+          <input type="range" min="300" max="2000" step="50" value="{{ fMax }}" onChange="{{ onMaxChange }}" style="width:100%; accent-color:#6A4E2F;" />
+          <label style="display:flex; align-items:center; gap:10px; margin-top:18px; font-size:13.5px; color:#4a3a26; cursor:pointer;">
+            <input type="checkbox" checked="{{ fOrganic }}" onChange="{{ onOrganicChange }}" style="width:16px; height:16px; accent-color:#6A4E2F;" /> 🌿 Organic only
+          </label>
+          <div style="font-family:Montserrat,sans-serif; font-weight:600; font-size:12px; color:#4a3a26; margin:20px 0 10px;">MIN RATING</div>
+          <div style="display:flex; gap:6px;">
+            <sc-for list="{{ ratingChips }}" as="r" hint-placeholder-count="4">
+              <button onClick="{{ r.onClick }}" style="{{ r.style }}">{{ r.label }}</button>
+            </sc-for>
+          </div>
+        </aside>
+        <div>
+          <div style="display:flex; justify-content:flex-end; margin-bottom:22px;">
+            <select onChange="{{ onSortChange }}" value="{{ sort }}" style="border:1px solid rgba(106,78,47,.2); border-radius:100px; padding:11px 18px; font-family:Poppins,sans-serif; font-size:13px; color:#4a3a26; background:#fff; cursor:pointer;">
+              <option value="popular">Sort: Popularity</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="rating">Highest Rated</option>
+            </select>
+          </div>
+          <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:22px;">
+              <sc-for list="{{ shopProducts }}" as="p" hint-placeholder-count="6">
+                <dc-import name="ProductCard" p="{{ p }}" hint-size="100%,420px"></dc-import>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center; padding:80px 20px; color:#8a7a63;">
+              <div style="font-size:44px;">🔍</div>
+              <p style="margin-top:14px; font-size:15px;">No products match your filters.</p>
+              <button onClick="{{ clearFilters }}" style="margin-top:14px; font-family:Montserrat,sans-serif; font-weight:600; background:#6A4E2F; color:#fff; border:none; padding:12px 26px; border-radius:100px; cursor:pointer;">Clear filters</button>
+            </div>
+          </sc-if>
+        </div>
+      </section>
+    </div>
+    </sc-if>
+
+    <!-- ===================== PRODUCT DETAIL ===================== -->
+    <sc-if value="{{ isProduct }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <section style="max-width:1360px; margin:0 auto; padding:36px 32px 0;">
+        <div style="font-size:12.5px; color:#8a7a63;"><a href="#" onClick="{{ goHome }}">Home</a> / <a href="#" onClick="{{ goShop }}">Shop</a> / <span style="color:#6A4E2F;">{{ pd.name }}</span></div>
+      </section>
+      <section style="max-width:1360px; margin:0 auto; padding:28px 32px 60px; display:grid; grid-template-columns:1fr 1fr; gap:56px;">
+        <div>
+          <div style="border-radius:24px; overflow:hidden; aspect-ratio:1; box-shadow:0 20px 50px rgba(106,78,47,.15);">
+            <image-slot id="{{ pd.slot }}" shape="rect" placeholder="{{ pd.name }}"></image-slot>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:14px;">
+            <sc-for list="{{ pd.thumbs }}" as="t" hint-placeholder-count="4">
+              <div style="border-radius:14px; overflow:hidden; aspect-ratio:1; border:2px solid rgba(106,78,47,.1); cursor:pointer;">
+                <image-slot id="{{ t.id }}" shape="rect" placeholder="{{ t.ph }}"></image-slot>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div>
+          <span style="font-family:Montserrat,sans-serif; font-size:11.5px; letter-spacing:.16em; color:#B08D3E; font-weight:600;">{{ pd.catUpper }}</span>
+          <h1 style="font-family:'Playfair Display',serif; font-size:38px; font-weight:700; color:#2a1f12; margin:10px 0 0; line-height:1.15;">{{ pd.name }}</h1>
+          <div style="display:flex; align-items:center; gap:10px; margin-top:12px;">
+            <span style="color:#D4AF37; letter-spacing:2px;">{{ pd.starStr }}</span>
+            <span style="font-size:13px; color:#8a7a63;">{{ pd.rating }} ({{ pd.reviews }} reviews)</span>
+          </div>
+          <div style="display:flex; align-items:baseline; gap:14px; margin-top:20px;">
+            <span style="font-family:'Playfair Display',serif; font-size:36px; font-weight:700; color:#6A4E2F;">{{ pd.priceDisplay }}</span>
+            <span style="text-decoration:line-through; color:#b0a288; font-size:18px;">{{ pd.oldDisplay }}</span>
+            <span style="background:#EA4335; color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px;">{{ pd.discLabel }}</span>
+          </div>
+          <p style="color:#6c5c47; font-size:15px; line-height:1.75; margin:22px 0 0; max-width:480px;">{{ pd.blurb }}</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:18px;">
+            <sc-for list="{{ pd.benefitChips }}" as="b" hint-placeholder-count="3">
+              <span style="background:#EAF3DC; color:#4a6b2a; font-size:12px; font-weight:600; padding:7px 14px; border-radius:100px;">✓ {{ b }}</span>
+            </sc-for>
+          </div>
+          <div style="font-size:13px; color:#8a7a63; margin-top:16px;">Origin: <b style="color:#4a3a26;">{{ pd.origin }}</b> &nbsp;·&nbsp; Pack size: <b style="color:#4a3a26;">{{ pd.weight }}</b></div>
+
+          <div style="display:flex; align-items:center; gap:16px; margin-top:30px;">
+            <div style="display:flex; align-items:center; border:1.5px solid rgba(106,78,47,.25); border-radius:100px; overflow:hidden;">
+              <button onClick="{{ pdDec }}" style="border:none; background:none; width:44px; height:48px; cursor:pointer; font-size:18px; color:#6A4E2F;">−</button>
+              <span style="min-width:32px; text-align:center; font-weight:600;">{{ pdQty }}</span>
+              <button onClick="{{ pdInc }}" style="border:none; background:none; width:44px; height:48px; cursor:pointer; font-size:18px; color:#6A4E2F;">+</button>
+            </div>
+            <button onClick="{{ pdAdd }}" style="flex:1; font-family:Montserrat,sans-serif; font-weight:700; font-size:14.5px; background:#6A4E2F; color:#fff; border:none; padding:16px; border-radius:100px; cursor:pointer; box-shadow:0 14px 30px rgba(106,78,47,.3);">Add to Cart · {{ pd.priceDisplay }}</button>
+            <button onClick="{{ pdWish }}" title="Wishlist" style="width:48px; height:48px; border-radius:50%; background:#fff; border:1.5px solid rgba(106,78,47,.2); cursor:pointer; font-size:18px; color:#EA4335;">{{ pd.wishGlyph }}</button>
+          </div>
+          <div style="display:flex; gap:22px; margin-top:26px; font-size:12.5px; color:#8a7a63;">
+            <span>🚚 Free shipping over ₹1499</span><span>↩ 7-day returns</span><span>🔒 Secure checkout</span>
+          </div>
+
+          <!-- TABS -->
+          <div style="margin-top:38px; border-top:1px solid rgba(106,78,47,.12);">
+            <sc-for list="{{ pdTabs }}" as="t" hint-placeholder-count="3">
+              <div>
+                <button onClick="{{ t.onClick }}" style="{{ t.headStyle }}">{{ t.label }} <span style="float:right;">{{ t.chevron }}</span></button>
+                <sc-if value="{{ t.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:0 4px 22px; color:#6c5c47; font-size:14px; line-height:1.8;">{{ t.content }}</div>
+                </sc-if>
+              </div>
+            </sc-for>
+            <sc-if value="{{ pdNutritionOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:0 4px 22px; display:grid; grid-template-columns:repeat(5,1fr); gap:10px;">
+                <sc-for list="{{ pd.nutritionRows }}" as="n" hint-placeholder-count="5">
+                  <div style="text-align:center; background:#F5EFE2; border-radius:12px; padding:12px 6px;">
+                    <div style="font-family:'Playfair Display',serif; font-weight:700; color:#6A4E2F; font-size:15px;">{{ n.v }}</div>
+                    <div style="font-size:10.5px; color:#8a7a63; margin-top:3px;">{{ n.k }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </section>
+
+      <!-- RELATED -->
+      <section style="max-width:1360px; margin:20px auto 90px; padding:0 32px;">
+        <h2 style="font-family:'Playfair Display',serif; font-size:28px; font-weight:700; color:#2a1f12; margin-bottom:24px;">You may also like</h2>
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px;">
+          <sc-for list="{{ related }}" as="p" hint-placeholder-count="4">
+            <dc-import name="ProductCard" p="{{ p }}" hint-size="100%,420px"></dc-import>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+    </sc-if>
+
+    <!-- ===================== ABOUT ===================== -->
+    <sc-if value="{{ isAbout }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <section style="position:relative; height:60vh; min-height:440px; overflow:hidden;">
+        <image-slot id="about-hero" shape="rect" fit="cover" placeholder="Orchard / farm landscape photo"></image-slot>
+        <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(26,20,12,.75), rgba(26,20,12,.15));"></div>
+        <div style="position:absolute; left:0; right:0; bottom:60px; text-align:center; color:#fff;">
+          <span style="font-family:Montserrat,sans-serif; font-size:12px; letter-spacing:.24em; color:#D4AF37; font-weight:600;">SINCE 1998</span>
+          <h1 style="font-family:'Playfair Display',serif; font-size:52px; font-weight:700; margin-top:14px;">Our Story</h1>
+        </div>
+      </section>
+      <section style="max-width:900px; margin:0 auto; padding:90px 32px; text-align:center;">
+        <p style="font-family:'Playfair Display',serif; font-style:italic; font-size:26px; line-height:1.6; color:#3a2c1a;">It began with a single sack of almonds and a promise: never sell anything we wouldn't feed our own family.</p>
+      </section>
+      <section style="max-width:1360px; margin:0 auto; padding:0 32px 100px; display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center;">
+        <div style="border-radius:24px; overflow:hidden; aspect-ratio:4/5; box-shadow:0 30px 60px rgba(106,78,47,.18);">
+          <image-slot id="about-founder" shape="rect" fit="cover" placeholder="Founder portrait"></image-slot>
+        </div>
+        <div>
+          <span style="font-family:Montserrat,sans-serif; font-size:12px; letter-spacing:.2em; color:#B08D3E; font-weight:600;">OUR ROOTS</span>
+          <h2 style="font-family:'Playfair Display',serif; font-size:36px; font-weight:700; color:#2a1f12; margin:14px 0 0;">A family trade, three generations deep</h2>
+          <p style="color:#6c5c47; font-size:15px; line-height:1.8; margin-top:18px;">Founded in a small Nashik warehouse in 1998, Fresh Dry Fruits started as a direct line between orchard families and neighborhood kitchens. Today we work with growers across 12 countries — but every batch is still tasted, sorted and sealed by hand before it reaches you.</p>
+          <p style="color:#6c5c47; font-size:15px; line-height:1.8; margin-top:14px;">No fillers. No preservatives. No shortcuts. Just the fruit, at its best.</p>
+        </div>
+      </section>
+      <section style="background:#fff; border-top:1px solid rgba(106,78,47,.1); padding:90px 32px;">
+        <div style="max-width:1360px; margin:0 auto;">
+          <h2 style="text-align:center; font-family:'Playfair Display',serif; font-size:36px; font-weight:700; color:#2a1f12; margin-bottom:50px;">What we stand for</h2>
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:26px;">
+            <sc-for list="{{ values }}" as="v" hint-placeholder-count="3">
+              <div style="text-align:center; padding:36px 24px;">
+                <div style="font-size:36px;">{{ v.icon }}</div>
+                <div style="font-family:'Playfair Display',serif; font-size:20px; font-weight:600; color:#2a1f12; margin-top:14px;">{{ v.title }}</div>
+                <p style="color:#8a7a63; font-size:13.5px; margin-top:8px; line-height:1.7;">{{ v.desc }}</p>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+      <section style="max-width:1360px; margin:0 auto; padding:90px 32px;">
+        <h2 style="text-align:center; font-family:'Playfair Display',serif; font-size:36px; font-weight:700; color:#2a1f12; margin-bottom:50px;">From our farms</h2>
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+          <sc-for list="{{ farmSlots }}" as="f" hint-placeholder-count="4">
+            <div style="border-radius:18px; overflow:hidden; aspect-ratio:3/4;">
+              <image-slot id="{{ f.id }}" shape="rect" fit="cover" placeholder="Farm photo"></image-slot>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+    </sc-if>
+
+    <!-- ===================== BLOG ===================== -->
+    <sc-if value="{{ isBlog }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <section style="max-width:1360px; margin:0 auto; padding:64px 32px 30px; text-align:center;">
+        <span style="font-family:Montserrat,sans-serif; font-size:12px; letter-spacing:.24em; color:#B08D3E; font-weight:600;">THE JOURNAL</span>
+        <h1 style="font-family:'Playfair Display',serif; font-size:46px; font-weight:700; color:#2a1f12; margin:14px 0 0;">Stories, recipes & rituals</h1>
+      </section>
+      <section style="max-width:1360px; margin:0 auto; padding:24px 32px 0;">
+        <div style="display:grid; grid-template-columns:1.1fr 1fr; gap:36px; background:#fff; border:1px solid rgba(106,78,47,.1); border-radius:26px; overflow:hidden;">
+          <div style="aspect-ratio:4/3;"><image-slot id="blog-feat" shape="rect" fit="cover" placeholder="Featured article photo"></image-slot></div>
+          <div style="padding:44px 44px 44px 0; display:flex; flex-direction:column; justify-content:center;">
+            <span style="font-family:Montserrat,sans-serif; font-size:11px; letter-spacing:.1em; color:#B08D3E; font-weight:700;">FEATURED · NUTRITION</span>
+            <h2 style="font-family:'Playfair Display',serif; font-size:28px; font-weight:700; color:#2a1f12; margin:12px 0 0; line-height:1.25;">Why a handful of almonds a day changes everything</h2>
+            <p style="color:#6c5c47; font-size:14.5px; line-height:1.7; margin-top:14px;">The science behind the world's most beloved snack — and how to tell real freshness from a stale shelf.</p>
+            <span style="font-size:12.5px; color:#8a7a63; margin-top:18px;">March 14, 2026 · 6 min read</span>
+          </div>
+        </div>
+      </section>
+      <section style="max-width:1360px; margin:0 auto; padding:60px 32px 100px; display:grid; grid-template-columns:repeat(3,1fr); gap:26px;">
+        <sc-for list="{{ blogPosts }}" as="b" hint-placeholder-count="6">
+          <article style="background:#fff; border:1px solid rgba(106,78,47,.1); border-radius:20px; overflow:hidden; transition:transform .3s, box-shadow .3s; cursor:pointer;" style-hover="transform:translateY(-6px); box-shadow:0 24px 50px rgba(106,78,47,.14);">
+            <div style="aspect-ratio:16/10;"><image-slot id="{{ b.slot }}" shape="rect" fit="cover" placeholder="{{ b.title }}"></image-slot></div>
+            <div style="padding:22px;">
+              <span style="font-family:Montserrat,sans-serif; font-size:10.5px; letter-spacing:.1em; color:#B08D3E; font-weight:700;">{{ b.tag }}</span>
+              <h3 style="font-family:'Playfair Display',serif; font-size:19px; font-weight:600; color:#2a1f12; margin:10px 0 0; line-height:1.3;">{{ b.title }}</h3>
+              <p style="color:#8a7a63; font-size:13px; margin-top:8px; line-height:1.6;">{{ b.excerpt }}</p>
+              <span style="display:block; font-size:12px; color:#a08a63; margin-top:14px;">{{ b.date }} · {{ b.read }}</span>
+            </div>
+          </article>
+        </sc-for>
+      </section>
+    </div>
+    </sc-if>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer data-surface="footer" style="background:#1A1A1A; color:#d8cdb8; padding:72px 32px 30px;">
+    <div style="max-width:1360px; margin:0 auto; display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:40px;">
+      <div>
+        <div style="display:flex; align-items:center; gap:11px;">
+          <span style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#D4AF37,#b8901f); display:grid; place-items:center; color:#1A1A1A; font-family:'Playfair Display',serif; font-size:21px; font-weight:700;">F</span>
+          <span style="font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:#fff;">Fresh Dry Fruits</span>
+        </div>
+        <p style="font-size:14px; line-height:1.7; margin:18px 0 0; max-width:320px; color:#a89a80;">Nature's finest dry fruits, delivered fresh from orchard to doorstep since 1998. Purity you can taste.</p>
+        <div style="display:flex; gap:12px; margin-top:22px;">
+          <a href="#" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center;color:#d8cdb8;">📷</a>
+          <a href="#" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center;color:#d8cdb8;">𝕏</a>
+          <a href="#" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center;color:#d8cdb8;">f</a>
+          <a href="#" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center;color:#d8cdb8;">▶</a>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-family:'Montserrat',sans-serif; font-size:12px; letter-spacing:.16em; color:#D4AF37; margin-bottom:16px;">SHOP</h4>
+        <a href="#" onClick="{{ goShop }}" style="display:block; color:#b6a988; font-size:14px; margin-bottom:11px;">All Products</a>
+        <a href="#" onClick="{{ goShop }}" style="display:block; color:#b6a988; font-size:14px; margin-bottom:11px;">Best Sellers</a>
+        <a href="#" onClick="{{ goShop }}" style="display:block; color:#b6a988; font-size:14px; margin-bottom:11px;">Gift Boxes</a>
+        <a href="#" onClick="{{ goShop }}" style="display:block; color:#b6a988; font-size:14px; margin-bottom:11px;">Organic Collection</a>
+      </div>
+      <div>
+        <h4 style="font-family:'Montserrat',sans-serif; font-size:12px; letter-spacing:.16em; color:#D4AF37; margin-bottom:16px;">COMPANY</h4>
+        <a href="#" onClick="{{ goAbout }}" style="display:block; color:#b6a988; font-size:14px; margin-bottom:11px;">Our Story</a>
+        <a href="#" onClick="{{ goBlog }}" style="display:block; color:#b6a988; font-size:14px; margin-bottom:11px;">Journal</a>
+        <a href="#" style="display:block; color:#b6a988; font-size:14px; margin-bottom:11px;">Our Farms</a>
+        <a href="#" style="display:block; color:#b6a988; font-size:14px; margin-bottom:11px;">Contact</a>
+      </div>
+      <div>
+        <h4 style="font-family:'Montserrat',sans-serif; font-size:12px; letter-spacing:.16em; color:#D4AF37; margin-bottom:16px;">SUPPORT</h4>
+        <a href="#" style="display:block; color:#b6a988; font-size:14px; margin-bottom:11px;">Track Order</a>
+        <a href="#" style="display:block; color:#b6a988; font-size:14px; margin-bottom:11px;">Shipping & Returns</a>
+        <a href="#" style="display:block; color:#b6a988; font-size:14px; margin-bottom:11px;">FAQ</a>
+        <a href="#" style="display:block; color:#b6a988; font-size:14px; margin-bottom:11px;">WhatsApp Us</a>
+      </div>
+    </div>
+    <div style="max-width:1360px; margin:44px auto 0; padding-top:24px; border-top:1px solid rgba(255,255,255,.1); display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px; font-size:12.5px; color:#8a7d64;">
+      <span>© 2026 Fresh Dry Fruits. All rights reserved.</span>
+      <span style="display:flex; gap:10px; align-items:center;">Secure payments · Razorpay · Stripe · PayPal · UPI · COD</span>
+    </div>
+  </footer>
+
+  <!-- CART DRAWER -->
+  <div style="{{ cartScrimStyle }}" onClick="{{ closeCart }}"></div>
+  <aside style="{{ cartDrawerStyle }}">
+    <dc-import name="CartDrawer" state="{{ cartApi }}" hint-size="420px,100%"></dc-import>
+  </aside>
+
+  <!-- QUICK VIEW -->
+  <sc-if value="{{ quickOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; inset:0; z-index:90; background:rgba(26,20,12,.55); backdrop-filter:blur(6px); display:grid; place-items:center; padding:24px;" onClick="{{ closeQuick }}">
+      <div onClick="{{ stop }}" style="background:#fff; border-radius:24px; max-width:900px; width:100%; overflow:hidden; display:grid; grid-template-columns:1fr 1fr; box-shadow:0 40px 90px rgba(0,0,0,.4); position:relative;">
+        <button onClick="{{ closeQuick }}" style="position:absolute; top:16px; right:16px; z-index:2; background:rgba(255,255,255,.9); border:none; width:38px; height:38px; border-radius:50%; cursor:pointer; font-size:18px; color:#6A4E2F;">✕</button>
+        <div style="position:relative; min-height:420px; background:#F5EFE2;">
+          <image-slot id="{{ quickSlot }}" shape="rect" placeholder="Product photo"></image-slot>
+        </div>
+        <div style="padding:40px;">
+          <span style="font-family:'Montserrat',sans-serif; font-size:11px; letter-spacing:.16em; color:#B08D3E; font-weight:600;">{{ quickCat }}</span>
+          <h3 style="font-family:'Playfair Display',serif; font-size:30px; font-weight:700; color:#2a1f12; margin:8px 0 0;">{{ quickName }}</h3>
+          <div style="color:#D4AF37; letter-spacing:2px; margin-top:8px; font-size:14px;">{{ quickStars }} <span style="color:#8a7a63; font-size:12px; letter-spacing:0;">{{ quickReviews }}</span></div>
+          <p style="color:#6c5c47; font-size:14px; line-height:1.7; margin:16px 0 0;">{{ quickBlurb }}</p>
+          <div style="display:flex; align-items:baseline; gap:12px; margin:22px 0;">
+            <span style="font-family:'Playfair Display',serif; font-size:32px; font-weight:700; color:#6A4E2F;">{{ quickPrice }}</span>
+            <span style="text-decoration:line-through; color:#b0a288; font-size:16px;">{{ quickOld }}</span>
+          </div>
+          <div style="display:flex; gap:12px;">
+            <button onClick="{{ quickAdd }}" style="flex:1; font-family:'Montserrat',sans-serif; font-weight:700; font-size:14px; background:#6A4E2F; color:#fff; border:none; padding:15px; border-radius:100px; cursor:pointer;">Add to Cart</button>
+            <button onClick="{{ quickFull }}" style="font-family:'Montserrat',sans-serif; font-weight:600; font-size:14px; background:#fff; color:#6A4E2F; border:1.5px solid rgba(106,78,47,.3); padding:15px 22px; border-radius:100px; cursor:pointer;">Full details</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- TOAST -->
+  <div style="{{ toastStyle }}">{{ toastMsg }}</div>
+
+
+  <!-- FLOATING WHATSAPP -->
+  <a href="#" title="Chat on WhatsApp" style="position:fixed; bottom:26px; right:26px; z-index:70; width:56px; height:56px; border-radius:50%; background:#25D366; color:#fff; display:grid; place-items:center; font-size:26px; box-shadow:0 10px 26px rgba(37,211,102,.45); animation:pulseRing 2.4s infinite;">✆</a>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;}}">
+class Component extends DCLogic {
+  state = {
+    page: 'home',
+    productId: null,
+    cart: [],
+    wishlist: [],
+    cartOpen: false,
+    checkoutStep: 0,
+    quickId: null,
+    search: '',
+    dark: false,
+    activeTesti: 0,
+    subLabel: 'Subscribe',
+    toast: '',
+    mega: false,
+    // shop
+    sort: 'popular',
+    fCats: [],
+    fMax: 2000,
+    fOrganic: false,
+    fRating: 0,
+    coupon: '',
+    couponMsg: '',
+    pdQty: 1,
+    pdTab: 'desc',
+  };
+
+  money(n){ return '₹' + n.toLocaleString('en-IN'); }
+  stars(r){ const f = Math.round(r); return '★★★★★'.slice(0,f) + '☆☆☆☆☆'.slice(0, 5-f); }
+
+  DATA = [
+    { id:'almonds', name:'California Premium Almonds', cat:'Almonds', catKey:'Almonds', price:899, old:1099, rating:4.8, reviews:342, weight:'500 g', badge:'Bestseller', organic:true, slot:'p-almonds',
+      blurb:'Plump, sweet Nonpareil almonds — sun-dried and cold-sorted for uniform size and an unmistakable crunch.',
+      origin:'California, USA', benefits:['Heart health','Vitamin E','Good fats'],
+      nutrition:{ 'Energy':'579 kcal','Protein':'21 g','Fat':'50 g','Fibre':'12 g','Carbs':'22 g' } },
+    { id:'cashews', name:'Kashmiri Roasted Cashews W240', cat:'Cashews', catKey:'Cashews', price:1249, old:1499, rating:4.9, reviews:218, weight:'500 g', badge:'Premium', organic:false, slot:'p-cashews',
+      blurb:'Grade W240 whole cashews, gently roasted to bring out their natural butteriness. Impossibly creamy.',
+      origin:'Mangalore, India', benefits:['Magnesium','Zinc','Antioxidants'],
+      nutrition:{ 'Energy':'553 kcal','Protein':'18 g','Fat':'44 g','Fibre':'3 g','Carbs':'30 g' } },
+    { id:'pistachios', name:'Iranian Salted Pistachios', cat:'Pistachios', catKey:'Pistachios', price:1099, old:1299, rating:4.7, reviews:176, weight:'500 g', badge:'New', organic:false, slot:'p-pistachios',
+      blurb:'Long, jade-green Akbari pistachios with a delicate salt cure. Naturally split, always fresh.',
+      origin:'Kerman, Iran', benefits:['Protein','Lutein','Fibre'],
+      nutrition:{ 'Energy':'562 kcal','Protein':'20 g','Fat':'45 g','Fibre':'10 g','Carbs':'28 g' } },
+    { id:'walnuts', name:'Kashmiri Walnut Kernels', cat:'Walnuts', catKey:'Walnuts', price:1349, old:1599, rating:4.8, reviews:143, weight:'500 g', badge:'', organic:true, slot:'p-walnuts',
+      blurb:'Light-halves from high-altitude Kashmiri orchards — buttery, low-tannin and rich in omega-3.',
+      origin:'Kashmir, India', benefits:['Omega-3','Brain health','Antioxidants'],
+      nutrition:{ 'Energy':'654 kcal','Protein':'15 g','Fat':'65 g','Fibre':'7 g','Carbs':'14 g' } },
+    { id:'dates', name:'Royal Medjool Dates', cat:'Dates', catKey:'Dates', price:749, old:899, rating:4.9, reviews:401, weight:'500 g', badge:'Bestseller', organic:true, slot:'p-dates',
+      blurb:'Giant, caramel-soft Medjool dates with a honeyed finish. Nature\u2019s sweet without a grain of added sugar.',
+      origin:'Jordan Valley', benefits:['Natural energy','Potassium','Fibre'],
+      nutrition:{ 'Energy':'277 kcal','Protein':'2 g','Fat':'0.2 g','Fibre':'7 g','Carbs':'75 g' } },
+    { id:'raisins', name:'Golden Seedless Raisins', cat:'Berries', catKey:'Berries', price:449, old:549, rating:4.6, reviews:289, weight:'500 g', badge:'', organic:true, slot:'p-raisins',
+      blurb:'Sun-golden Kishmish, plump and jammy. The pantry staple that\u2019s never dry, never sticky.',
+      origin:'Nashik, India', benefits:['Iron','Digestion','Antioxidants'],
+      nutrition:{ 'Energy':'299 kcal','Protein':'3 g','Fat':'0.5 g','Fibre':'4 g','Carbs':'79 g' } },
+    { id:'figs', name:'Turkish Dried Figs (Anjeer)', cat:'Figs', catKey:'Figs', price:899, old:1049, rating:4.7, reviews:132, weight:'400 g', badge:'', organic:false, slot:'p-figs',
+      blurb:'Soft Lerida figs, sun-dried whole. Delicately sweet with that signature seedy crunch.',
+      origin:'Aydin, Turkey', benefits:['Calcium','Fibre','Iron'],
+      nutrition:{ 'Energy':'249 kcal','Protein':'3 g','Fat':'1 g','Fibre':'10 g','Carbs':'64 g' } },
+    { id:'apricots', name:'Turkish Dried Apricots', cat:'Apricots', catKey:'Apricots', price:799, old:949, rating:4.6, reviews:98, weight:'500 g', badge:'', organic:true, slot:'p-apricots',
+      blurb:'Whole, unsulphured Malatya apricots — tangy-sweet and beautifully chewy. Nothing added.',
+      origin:'Malatya, Turkey', benefits:['Vitamin A','Potassium','Fibre'],
+      nutrition:{ 'Energy':'241 kcal','Protein':'3 g','Fat':'0.5 g','Fibre':'7 g','Carbs':'63 g' } },
+    { id:'mixed', name:'Royal Mixed Nuts Deluxe', cat:'Gift Boxes', catKey:'Gift Boxes', price:1499, old:1799, rating:4.9, reviews:512, weight:'750 g', badge:'Bestseller', organic:false, slot:'p-mixed',
+      blurb:'A curated medley of almonds, cashews, pistachios and walnuts. The everyday luxury for the whole family.',
+      origin:'Assorted origins', benefits:['Balanced nutrition','Protein','Good fats'],
+      nutrition:{ 'Energy':'607 kcal','Protein':'19 g','Fat':'54 g','Fibre':'8 g','Carbs':'20 g' } },
+  ];
+
+  CATS = [
+    { name:'Almonds', icon:'🌰', slot:'cat-almonds' },
+    { name:'Cashews', icon:'🥜', slot:'cat-cashews' },
+    { name:'Walnuts', icon:'🌰', slot:'cat-walnuts' },
+    { name:'Pistachios', icon:'🌿', slot:'cat-pistachios' },
+    { name:'Dates', icon:'🍯', slot:'cat-dates' },
+    { name:'Berries', icon:'🍒', slot:'cat-berries' },
+    { name:'Figs', icon:'🟣', slot:'cat-figs' },
+    { name:'Gift Boxes', icon:'🎁', slot:'cat-gifts' },
+  ];
+
+  TRUST = [
+    { icon:'🌿', label:'100% Natural' },
+    { icon:'🚜', label:'Farm Fresh' },
+    { icon:'🚫', label:'No Preservatives' },
+    { icon:'👑', label:'Premium Quality' },
+    { icon:'🚚', label:'Fast Delivery' },
+    { icon:'🔒', label:'Secure Payments' },
+  ];
+
+  BENEFITS = [
+    { icon:'❤️', stat:'−14%', title:'Heart health', desc:'Daily nuts are linked to lower bad cholesterol and better heart outcomes.' },
+    { icon:'🧠', stat:'Omega-3', title:'Brain fuel', desc:'Walnuts & almonds deliver the fats your brain actually runs on.' },
+    { icon:'⚡', stat:'+6 hrs', title:'Steady energy', desc:'Dates & raisins release slow, sustained energy — no sugar crash.' },
+    { icon:'🛡️', stat:'Rich in', title:'Antioxidants', desc:'Vitamin E and polyphenols that help your body fight daily stress.' },
+  ];
+
+  TESTI = [
+    { text:'The freshness is on another level. You can smell it the second you open the box — this is what dry fruits are supposed to taste like.', name:'Ananya Mehta', location:'Mumbai' },
+    { text:'I gift the Maharaja Box to every client at Diwali. The packaging alone gets a reaction before anyone tastes a thing. Flawless.', name:'Rajiv Khanna', location:'Delhi' },
+    { text:'Been buying almonds here for two years. Consistent, huge, and never once a stale batch. Worth every rupee.', name:'Sara Thomas', location:'Bengaluru' },
+    { text:'The Medjool dates are unreal — soft like caramel. My kids think they\u2019re dessert and I let them believe it.', name:'Farah Ali', location:'Hyderabad' },
+  ];
+
+  INSTA = [{id:'ig-1'},{id:'ig-2'},{id:'ig-3'},{id:'ig-4'},{id:'ig-5'},{id:'ig-6'}];
+
+  componentDidMount(){
+    // testimonial autoplay
+    this._t = setInterval(()=> this.setState(s=>({ activeTesti:(s.activeTesti+1)%this.TESTI.length })), 5200);
+    this.setupReveal();
+    this.parallax();
+  }
+  componentDidUpdate(){ this.setupReveal(); }
+  componentWillUnmount(){ clearInterval(this._t); }
+
+  setupReveal(){
+    const els = document.querySelectorAll('[data-reveal]:not([data-seen])');
+    if(!els.length) return;
+    if(!this._io){
+      this._io = new IntersectionObserver((ents)=>{
+        ents.forEach(e=>{ if(e.isIntersecting){ e.target.style.opacity=1; e.target.style.transform='none'; } });
+      }, { threshold:0.12 });
+    }
+    els.forEach(el=>{
+      el.setAttribute('data-seen','1');
+      el.style.opacity=0; el.style.transform='translateY(28px)';
+      el.style.transition='opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1)';
+      this._io.observe(el);
+    });
+  }
+
+  parallax(){
+    const art = this._heroArt;
+    if(!art) return;
+    window.addEventListener('mousemove', (e)=>{
+      if(this.state.page!=='home') return;
+      const x = (e.clientX/window.innerWidth - .5);
+      const y = (e.clientY/window.innerHeight - .5);
+      art.querySelectorAll('[data-float]').forEach((el,i)=>{
+        const d = (i+1)*8;
+        el.style.marginLeft = (x*d)+'px';
+        el.style.marginTop = (y*d)+'px';
+      });
+    });
+  }
+
+  toast(msg){ this.setState({ toast:msg }); clearTimeout(this._toast); this._toast=setTimeout(()=>this.setState({toast:''}),2200); }
+
+  nav(page, productId){ this.setState({ page, productId:productId||null, mega:false, cartOpen:false }); window.scrollTo({top:0,behavior:'smooth'}); }
+
+  addToCart(id, qty){
+    qty = qty||1;
+    this.setState(s=>{
+      const ex = s.cart.find(l=>l.id===id);
+      const cart = ex ? s.cart.map(l=>l.id===id?{...l,qty:l.qty+qty}:l) : [...s.cart, {id, qty}];
+      return { cart, cartOpen:true, checkoutStep:0 };
+    });
+    const p = this.DATA.find(d=>d.id===id);
+    this.toast((p?p.name:'Item')+' added to cart');
+  }
+  setQty(id, d){ this.setState(s=>({ cart:s.cart.map(l=>l.id===id?{...l,qty:Math.max(1,l.qty+d)}:l) })); }
+  removeLine(id){ this.setState(s=>({ cart:s.cart.filter(l=>l.id!==id) })); }
+  toggleWish(id){
+    this.setState(s=>({ wishlist:s.wishlist.includes(id)? s.wishlist.filter(w=>w!==id):[...s.wishlist,id] }));
+  }
+  moveToWish(id){ this.setState(s=>({ wishlist:s.wishlist.includes(id)?s.wishlist:[...s.wishlist,id], cart:s.cart.filter(l=>l.id!==id) })); this.toast('Moved to wishlist'); }
+
+  applyCoupon(){
+    const c = this.state.coupon.trim().toUpperCase();
+    if(c==='FRESH10'){ this.setState({ couponMsg:'✓ 10% off applied!' }); }
+    else if(c===''){ this.setState({ couponMsg:'' }); }
+    else { this.setState({ couponMsg:'Invalid code' }); }
+  }
+
+  decorate(p){
+    const s = this.state;
+    const disc = Math.round((1 - p.price/p.old)*100);
+    return {
+      ...p,
+      priceDisplay: this.money(p.price),
+      oldDisplay: this.money(p.old),
+      starStr: this.stars(p.rating),
+      reviewStr: '('+p.reviews+')',
+      discLabel: disc>0 ? '−'+disc+'%' : '',
+      hasDisc: disc>0,
+      isWished: s.wishlist.includes(p.id),
+      wishGlyph: s.wishlist.includes(p.id) ? '♥' : '♡',
+      badgeShow: !!p.badge,
+      organicShow: p.organic,
+      onAdd: (e)=>{ e && e.stopPropagation(); this.addToCart(p.id,1); },
+      onWish: (e)=>{ e && e.stopPropagation(); this.toggleWish(p.id); },
+      onQuick: (e)=>{ e && e.stopPropagation(); this.setState({ quickId:p.id }); },
+      onOpen: ()=> this.nav('product', p.id),
+    };
+  }
+
+  renderVals(){
+    const s = this.state;
+    const iconBtn = 'position:relative; background:#fff; border:1px solid rgba(106,78,47,.14); width:clamp(36px,3.5vw,44px); height:clamp(36px,3.5vw,44px); border-radius:50%; cursor:pointer; font-size:18px; color:#6A4E2F; display:grid; place-items:center; transition:background .2s, transform .2s; flex-shrink:0;';
+    const navBase = 'background:none; border:none; cursor:pointer; font-family:Montserrat,sans-serif; font-weight:600; font-size:13px; color:#4a3a26; padding:6px 2px; border-bottom:2px solid transparent; transition:color .2s, border-color .2s;';
+    const navOn = navBase + 'color:#6A4E2F; border-color:#D4AF37;';
+
+    const cartLines = s.cart.map(l=>{
+      const p = this.DATA.find(d=>d.id===l.id);
+      return { id:l.id, name:p.name, weight:p.weight, slot:p.slot, qty:l.qty,
+        lineTotal:this.money(p.price*l.qty), unit:this.money(p.price),
+        onInc:()=>this.setQty(l.id,1), onDec:()=>this.setQty(l.id,-1),
+        onRemove:()=>this.removeLine(l.id), onWish:()=>this.moveToWish(l.id) };
+    });
+    const subtotal = s.cart.reduce((t,l)=> t + this.DATA.find(d=>d.id===l.id).price*l.qty, 0);
+    const cartCount = s.cart.reduce((t,l)=>t+l.qty,0);
+    const couponApplied = s.couponMsg.startsWith('✓');
+    const discount = couponApplied ? Math.round(subtotal*0.1) : 0;
+    const shipping = subtotal>1499 || subtotal===0 ? 0 : 79;
+    const grand = subtotal - discount + shipping;
+
+    const activeT = this.TESTI[s.activeTesti];
+    const testiDots = this.TESTI.map((t,i)=>({
+      onClick:()=>this.setState({activeTesti:i}),
+      style:'width:'+(i===s.activeTesti?'28px':'8px')+'; height:8px; border-radius:100px; border:none; cursor:pointer; transition:.3s; background:'+(i===s.activeTesti?'#6A4E2F':'#d8c9ac')+';'
+    }));
+
+    const megaCats = this.CATS.map(c=>{
+      const n = this.DATA.filter(d=>d.catKey===c.name).length;
+      return { name:c.name, icon:c.icon, count:(n||3)+' products', onClick:()=>{ this.setState({fCats:[c.name]}); this.nav('shop'); } };
+    });
+
+    const categories = this.CATS.map(c=>{
+      const n = this.DATA.filter(d=>d.catKey===c.name).length;
+      return { name:c.name, icon:c.icon, slotId:c.slot, ph:c.name+' photo',
+        count:(n||3)+' products',
+        tileStyle:'position:relative; height:230px; border-radius:20px; overflow:hidden; cursor:pointer; border:none; padding:0; box-shadow:0 14px 34px rgba(106,78,47,.14); transition:transform .35s, box-shadow .35s;',
+        onClick:()=>{ this.setState({fCats:[c.name]}); this.nav('shop'); } };
+    });
+
+    const quick = s.quickId ? this.DATA.find(d=>d.id===s.quickId) : null;
+
+    // ---- SHOP ----
+    const catFilters = this.CATS.map(c=>({
+      name:c.name, checked: s.fCats.includes(c.name),
+      onToggle:()=>this.setState(s2=>({ fCats: s2.fCats.includes(c.name) ? s2.fCats.filter(x=>x!==c.name) : [...s2.fCats,c.name] })),
+    }));
+    let shopList = this.DATA.filter(p=>{
+      if(s.fCats.length && !s.fCats.includes(p.catKey)) return false;
+      if(p.price > s.fMax) return false;
+      if(s.fOrganic && !p.organic) return false;
+      if(p.rating < s.fRating) return false;
+      if(s.search.trim() && !p.name.toLowerCase().includes(s.search.trim().toLowerCase())) return false;
+      return true;
+    });
+    if(s.sort==='price-low') shopList = [...shopList].sort((a,b)=>a.price-b.price);
+    else if(s.sort==='price-high') shopList = [...shopList].sort((a,b)=>b.price-a.price);
+    else if(s.sort==='rating') shopList = [...shopList].sort((a,b)=>b.rating-a.rating);
+    const shopProducts = shopList.map(p=>this.decorate(p));
+    const ratingChips = [4.5,4,3,0].map(r=>({
+      label: r===0?'Any':r+'★+', onClick:()=>this.setState({fRating:r}),
+      style:'border:1.5px solid '+(s.fRating===r?'#6A4E2F':'rgba(106,78,47,.2)')+'; background:'+(s.fRating===r?'#6A4E2F':'#fff')+'; color:'+(s.fRating===r?'#fff':'#4a3a26')+'; border-radius:100px; padding:6px 12px; font-size:12px; cursor:pointer; font-family:Montserrat,sans-serif;'
+    }));
+
+    // ---- PRODUCT DETAIL ----
+    const cur = this.DATA.find(d=>d.id===s.productId) || this.DATA[0];
+    const pdDec = cur.rating; // noop keep lint happy
+    const pdBase = this.decorate(cur);
+    const pd = {
+      ...pdBase,
+      catUpper: cur.cat.toUpperCase(),
+      thumbs: [cur.slot,cur.slot,cur.slot,cur.slot].map((id,i)=>({id, ph:cur.name+' '+(i+1)})),
+      benefitChips: cur.benefits,
+      nutritionRows: Object.entries(cur.nutrition).map(([k,v])=>({k,v})),
+    };
+    const tabDefs = [
+      { key:'desc', label:'Description', content: cur.blurb+' Every batch is quality-checked in-house before packing, sealed for freshness, and shipped within 24 hours of your order.' },
+      { key:'nutrition', label:'Nutrition Facts (per 100g)', content: '' },
+      { key:'reviews', label:'Reviews ('+cur.reviews+')', content: '"'+this.TESTI[0].text+'" — verified buyer, 5★. Join thousands of happy customers who reorder every month.' },
+    ];
+    const pdTabs = tabDefs.map(t=>({
+      label:t.label, content:t.content, open: s.pdTab===t.key, chevron: s.pdTab===t.key?'−':'+',
+      onClick:()=>this.setState({pdTab: s.pdTab===t.key?'':t.key}),
+      headStyle:'width:100%; text-align:left; background:none; border:none; border-top:1px solid rgba(106,78,47,.12); padding:18px 4px; font-family:Montserrat,sans-serif; font-weight:600; font-size:14px; color:#2a1f12; cursor:pointer;',
+    }));
+    const related = this.DATA.filter(d=>d.id!==cur.id && d.catKey===cur.catKey).concat(this.DATA.filter(d=>d.id!==cur.id)).slice(0,4).map(p=>this.decorate(p));
+
+    // ---- ABOUT ----
+    const values = [
+      { icon:'🌱', title:'Sourced with care', desc:'Direct relationships with growers across 12 countries, revisited every season.' },
+      { icon:'🔬', title:'Quality, verified', desc:'Every batch lab-tested for purity before it\u2019s cleared for packing.' },
+      { icon:'♻️', title:'Sustainably packed', desc:'Recyclable, minimal packaging that protects freshness, not the planet.' },
+    ];
+    const farmSlots = [1,2,3,4].map(i=>({id:'farm-'+i}));
+
+    // ---- BLOG ----
+    const blogPosts = [
+      { slot:'blog-1', tag:'RECIPES', title:'5 date-night desserts using Medjool dates', excerpt:'No refined sugar, no oven — just five ingredients and ten minutes.', date:'Mar 8, 2026', read:'4 min read' },
+      { slot:'blog-2', tag:'GUIDES', title:'How to store nuts so they never go rancid', excerpt:'The airtight, cool, dark rule — and why your fridge is the answer.', date:'Feb 26, 2026', read:'5 min read' },
+      { slot:'blog-3', tag:'CULTURE', title:'The centuries-old craft of Kashmiri walnut harvesting', excerpt:'A look inside the orchards that supply our walnut kernels.', date:'Feb 12, 2026', read:'7 min read' },
+      { slot:'blog-4', tag:'NUTRITION', title:'Pistachios vs. cashews: which wins for protein?', excerpt:'We break down the macros so your snack drawer works harder.', date:'Jan 30, 2026', read:'3 min read' },
+      { slot:'blog-5', tag:'GIFTING', title:'Building the perfect festive gift box', excerpt:'A pairing guide for hosts, in-laws, and everyone in between.', date:'Jan 18, 2026', read:'4 min read' },
+      { slot:'blog-6', tag:'RECIPES', title:'A 10-minute energy bar with figs and almonds', excerpt:'Meal-prep snack that actually holds up in a gym bag.', date:'Jan 4, 2026', read:'3 min read' },
+    ];
+
+    const stepNames = ['Cart','Address','Payment','Review'];
+    const step = s.checkoutStep;
+    const steps = stepNames.map((label,i)=>({
+      label,
+      style:'flex:1; text-align:center; font-family:Montserrat,sans-serif; font-size:10.5px; font-weight:700; letter-spacing:.04em; padding:8px 4px; border-radius:8px; color:'+(i===step?'#6A4E2F':'#b0a288')+'; background:'+(i===step?'#F5EFE2':'transparent')+';'
+    }));
+    const payMethods = [
+      { icon:'💳', label:'Credit / Debit Card', check: s.payMethod==='card'?'✓':'' },
+      { icon:'📱', label:'UPI', check: (s.payMethod||'upi')==='upi'?'✓':'' },
+      { icon:'💰', label:'Cash on Delivery', check: s.payMethod==='cod'?'✓':'' },
+    ].map(m=>({ ...m, style:'display:flex; align-items:center; gap:12px; padding:14px 16px; border:1.5px solid rgba(106,78,47,.15); border-radius:14px; margin-bottom:10px; cursor:pointer; font-size:13.5px; color:#3a2c1a;' }));
+    const inputStyle = 'border:1px solid rgba(106,78,47,.2); border-radius:12px; padding:13px 16px; font-family:Poppins,sans-serif; font-size:13.5px; outline:none;';
+
+    const cartApi = {
+      lines: cartLines, count: cartCount, empty: s.cart.length===0 && step<4,
+      showBody: s.cart.length>0 && step<4,
+      done: step===4,
+      orderNo: this._orderNo || (this._orderNo = Math.floor(10000+Math.random()*89999)),
+      subtotalStr:this.money(subtotal), discountStr:'−'+this.money(discount),
+      shippingStr: shipping===0?'FREE':this.money(shipping), grandStr:this.money(grand),
+      hasDiscount: discount>0, step,
+      steps, isCart: step===0, isAddress: step===1, isPayment: step===2, isReview: step===3,
+      payMethods, inputStyle,
+      canBack: step>0,
+      back:()=>this.setState(s2=>({checkoutStep:Math.max(0,s2.checkoutStep-1)})),
+      primaryLabel: step===0?'Proceed to Address': step===1?'Proceed to Payment': step===2?'Review Order':'Place Order',
+      primary:()=>{
+        if(step<3) this.setState(s2=>({checkoutStep:s2.checkoutStep+1}));
+        else this.setState({checkoutStep:4});
+      },
+      coupon:s.coupon, couponMsg:s.couponMsg,
+      onCoupon:(e)=>this.setState({coupon:e.target.value}),
+      applyCoupon:()=>this.applyCoupon(),
+      close:()=>this.setState({cartOpen:false}),
+      shopMore:()=>{ this.setState({cartOpen:false}); this.nav('shop'); },
+      reset:()=>this.setState({cart:[],checkoutStep:0,cartOpen:false,coupon:'',couponMsg:''}),
+    };
+
+    return {
+      rootRef:(el)=>this._root=el,
+      heroArt:(el)=>this._heroArt=el,
+      heroRef:()=>{}, tQuote:()=>{}, megaWrap:()=>{}, searchWrap:()=>{},
+      searchInput:(el)=>this._si=el, subEmail:(el)=>this._sub=el, pagesMount:()=>{},
+
+      // nav / routing
+      goHome:()=>this.nav('home'), goShop:()=>this.nav('shop'),
+      goAbout:()=>this.nav('about'), goBlog:()=>this.nav('blog'),
+      goWishlist:()=>this.nav('shop'),
+      isHome: s.page==='home', isShop:s.page==='shop', isProduct:s.page==='product',
+      isAbout:s.page==='about', isBlog:s.page==='blog',
+      navHomeStyle: s.page==='home'?navOn:navBase,
+      navShopStyle: s.page==='shop'||s.page==='product'?navOn:navBase,
+      navAboutStyle: s.page==='about'?navOn:navBase,
+      navBlogStyle: s.page==='blog'?navOn:navBase,
+
+      // mega
+      openMega:()=>this.setState({mega:true}), closeMega:()=>this.setState({mega:false}),
+      megaStyle:'position:absolute; top:calc(100% + 14px); left:-20px; width:520px; background:#fff; border-radius:18px; box-shadow:0 30px 70px rgba(106,78,47,.22); border:1px solid rgba(106,78,47,.1); padding:20px; opacity:'+(s.mega?1:0)+'; visibility:'+(s.mega?'visible':'hidden')+'; transform:translateY('+(s.mega?'0':'10px')+'); transition:.25s;',
+      megaCats,
+
+      // search
+      search:s.search, hasSearch:s.search.trim().length>0,
+      onSearchInput:(e)=>this.setState({search:e.target.value}),
+      runSearch:()=>{ this.setState({fCats:[]}); this.nav('shop'); },
+      searchBoxStyle:'display:flex; align-items:center; gap:8px; background:#fff; border:1px solid rgba(106,78,47,.16); border-radius:100px; padding:8px 8px 8px 16px; margin-right:6px;',
+
+      // icons / theme
+      iconBtn,
+      toggleDark:()=>this.toggleDark(),
+      darkIcon: s.dark?'☀':'☾',
+
+      // badges
+      cartCount, wishCount:s.wishlist.length,
+      cartBadgeStyle:'position:absolute; top:-4px; right:-4px; background:#D4AF37; color:#1A1A1A; font-family:Montserrat,sans-serif; font-size:10px; font-weight:700; min-width:19px; height:19px; border-radius:100px; display:'+(cartCount?'grid':'none')+'; place-items:center; padding:0 4px; border:2px solid #FFFDF8;',
+      wishBadgeStyle:'position:absolute; top:-2px; right:-2px; background:#EA4335; color:#fff; font-family:Montserrat,sans-serif; font-size:9px; font-weight:700; min-width:16px; height:16px; border-radius:100px; display:'+(s.wishlist.length?'grid':'none')+'; place-items:center; padding:0 3px;',
+
+      // content collections
+      trustBadges:this.TRUST, categories, benefits:this.BENEFITS,
+      bestSellers:this.DATA.filter(d=>['almonds','cashews','dates','mixed'].includes(d.id)).map(p=>this.decorate(p)),
+      instaSlots:this.INSTA,
+      activeT, testiDots,
+
+      // cart drawer
+      openCart:()=>this.setState({cartOpen:true}), closeCart:()=>this.setState({cartOpen:false}),
+      cartApi,
+      cartScrimStyle:'position:fixed; inset:0; z-index:80; background:rgba(26,20,12,.5); backdrop-filter:blur(3px); opacity:'+(s.cartOpen?1:0)+'; visibility:'+(s.cartOpen?'visible':'hidden')+'; transition:.3s;',
+      cartDrawerStyle:'position:fixed; top:0; right:0; bottom:0; z-index:81; width:min(420px,92vw); background:#FFFDF8; box-shadow:-20px 0 60px rgba(0,0,0,.25); transform:translateX('+(s.cartOpen?'0':'100%')+'); transition:transform .4s cubic-bezier(.4,0,.1,1);',
+
+      // quick view
+      quickOpen: !!quick,
+      quickSlot: quick?quick.slot:'qv', quickName:quick?quick.name:'', quickCat:quick?quick.cat.toUpperCase():'',
+      quickStars:quick?this.stars(quick.rating):'', quickReviews:quick?('('+quick.reviews+' reviews)'):'',
+      quickBlurb:quick?quick.blurb:'', quickPrice:quick?this.money(quick.price):'', quickOld:quick?this.money(quick.old):'',
+      quickAdd:()=>{ this.addToCart(quick.id,1); this.setState({quickId:null}); },
+      quickFull:()=>{ const id=quick.id; this.setState({quickId:null}); this.nav('product',id); },
+      closeQuick:()=>this.setState({quickId:null}), stop:(e)=>e.stopPropagation(),
+
+      // newsletter
+      subLabel:s.subLabel,
+      onSubscribe:(e)=>{ e.preventDefault(); this.setState({subLabel:'✓ Welcome!'}); this.toast('You\u2019re in! Check your inbox for 10% off.'); if(this._sub)this._sub.value=''; setTimeout(()=>this.setState({subLabel:'Subscribe'}),3000); },
+
+      // shop
+      catFilters, shopProducts, ratingChips,
+      hasResults: shopProducts.length>0, noResults: shopProducts.length===0,
+      resultCount: shopProducts.length,
+      fMax:s.fMax, fMaxLabel:this.money(s.fMax), fOrganic:s.fOrganic, sort:s.sort,
+      onMaxChange:(e)=>this.setState({fMax:Number(e.target.value)}),
+      onOrganicChange:()=>this.setState(s2=>({fOrganic:!s2.fOrganic})),
+      onSortChange:(e)=>this.setState({sort:e.target.value}),
+      clearFilters:()=>this.setState({fCats:[],fMax:2000,fOrganic:false,fRating:0,search:''}),
+
+      // product detail
+      pd, pdTabs, pdNutritionOpen: s.pdTab==='nutrition',
+      pdQty:s.pdQty,
+      pdInc:()=>this.setState(s2=>({pdQty:s2.pdQty+1})),
+      pdDec:()=>this.setState(s2=>({pdQty:Math.max(1,s2.pdQty-1)})),
+      pdAdd:()=>this.addToCart(cur.id, s.pdQty),
+      pdWish:()=>this.toggleWish(cur.id),
+      related,
+
+      // about / blog
+      values, farmSlots, blogPosts,
+
+      // toast
+      toastMsg:s.toast,
+      toastStyle:'position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY('+(s.toast?'0':'20px')+'); z-index:120; background:#1A1A1A; color:#fff; font-family:Montserrat,sans-serif; font-size:13px; font-weight:600; padding:14px 24px; border-radius:100px; box-shadow:0 16px 40px rgba(0,0,0,.35); opacity:'+(s.toast?1:0)+'; transition:.35s; pointer-events:none;',
+    };
+  }
+
+  toggleDark(){
+    const dark = !this.state.dark;
+    this.setState({dark});
+    const root = this._root; if(!root) return;
+    const page = root.querySelector('[data-surface="page"]') || root;
+    if(dark){
+      root.style.background='#1A1A1A';
+      root.style.setProperty('--x','1');
+      root.querySelectorAll('h1,h2,h3,p,span,div').forEach(()=>{});
+      root.style.filter='';
+      root.classList.add('fdf-dark');
+      document.documentElement.style.setProperty('color-scheme','dark');
+      root.querySelectorAll('[data-surface="nav"]').forEach(n=>{ n.style.background='rgba(26,20,12,.85)'; });
+    } else {
+      root.style.background='#FFFDF8';
+      root.classList.remove('fdf-dark');
+      root.querySelectorAll('[data-surface="nav"]').forEach(n=>{ n.style.background='rgba(255,253,248,.82)'; });
+    }
+    this.toast(dark?'Night mode on':'Day mode on');
+  }
+}
+</script>
+</body>
+</html>

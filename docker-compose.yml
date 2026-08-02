@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fdf
+      POSTGRES_PASSWORD: fdf_dev_pw
+      POSTGRES_DB: fresh_dry_fruits
+    ports:
+      - "5432:5432"
+    volumes:
+      - fdf_db_data:/var/lib/postgresql/data
+
+volumes:
+  fdf_db_data:

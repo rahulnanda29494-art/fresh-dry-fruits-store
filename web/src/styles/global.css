@@ -1,0 +1,76 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Poppins', sans-serif;
+  color: #222222;
+  background: #FFFDF8;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select { font-family: inherit; }
+button { cursor: pointer; }
+a { color: #6A4E2F; text-decoration: none; transition: color .25s ease; }
+a:hover { color: #D4AF37; }
+::selection { background: #D4AF37; color: #1A1A1A; }
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-thumb { background: #6A4E2F; border-radius: 8px; }
+::-webkit-scrollbar-track { background: #F0EADF; }
+
+@keyframes floatY { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-22px) rotate(2deg); } }
+@keyframes floatY2 { 0%, 100% { transform: translateY(0) rotate(3deg); } 50% { transform: translateY(-30px) rotate(-3deg); } }
+@keyframes floatY3 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes spinSlow { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes pulseRing { 0% { box-shadow: 0 0 0 0 rgba(212,175,55,.5); } 70% { box-shadow: 0 0 0 14px rgba(212,175,55,0); } 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); } }
+
+/* Hover states the original expressed via style-hover="..." */
+.hover-lift:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(106,78,47,.4); }
+.hover-lift-soft:hover { transform: translateY(-3px); }
+.icon-btn:hover { background: #F5EFE2; }
+.mega-item:hover { background: #F5EFE2; }
+.nav-cart:hover { transform: translateY(-2px); }
+.product-card:hover { transform: translateY(-8px); box-shadow: 0 30px 60px rgba(106,78,47,.18); }
+.product-card:hover .product-card-actions { opacity: 1; transform: translateY(0); }
+.product-card-actions { opacity: 0; transform: translateY(10px); transition: .3s; }
+.add-to-cart-btn:hover { transform: scale(1.08); background: #553d22; }
+.outline-btn:hover { background: #fff; }
+.outline-btn:hover.border-strong { border-color: #6A4E2F; }
+.benefit-card:hover { transform: translateY(-6px); box-shadow: 0 24px 50px rgba(106,78,47,.12); }
+.blog-card:hover { transform: translateY(-6px); box-shadow: 0 24px 50px rgba(106,78,47,.14); }
+.insta-tile:hover .insta-overlay { background: rgba(106,78,47,.4); opacity: 1; }
+.gift-cta:hover { transform: translateY(-3px); }
+.view-all-btn:hover { background: #fff; }
+
+/* Responsive breakpoints — the original design used clamp() for fluid type
+   but no grid breakpoints, which leaves nav controls (cart, search, account)
+   pushed off-screen on phone widths. These collapse the fixed-column grids
+   and swap the inline nav for a hamburger menu below 860px. */
+.nav-hamburger { display: none !important; }
+@media (max-width: 860px) {
+  .nav-links-desktop { display: none !important; }
+  .nav-hamburger { display: grid !important; }
+  .nav-search-desktop { display: none !important; }
+}
+@media (max-width: 480px) {
+  .logo-tagline { display: none !important; }
+}
+
+@media (max-width: 900px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid-2-to-1 { grid-template-columns: 1fr !important; gap: 32px !important; }
+  .shop-layout { grid-template-columns: 1fr !important; }
+  .shop-sidebar { position: static !important; }
+  .footer-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .hero-grid { grid-template-columns: 1fr !important; }
+  .hero-visual { height: 360px !important; margin-top: 20px; }
+  .grid-6 { grid-template-columns: repeat(4, 1fr) !important; }
+}
+
+@media (max-width: 640px) {
+  .grid-4 { grid-template-columns: 1fr !important; }
+  .grid-3 { grid-template-columns: 1fr !important; }
+  .grid-6 { grid-template-columns: repeat(3, 1fr) !important; }
+  .footer-grid { grid-template-columns: 1fr !important; }
+  .section-pad { padding-left: 18px !important; padding-right: 18px !important; }
+}
