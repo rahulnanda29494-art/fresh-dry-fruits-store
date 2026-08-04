@@ -8,12 +8,14 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  createdAt    DateTime @default(now())
-  orders       Order[]
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String
+  name             String
+  createdAt        DateTime  @default(now())
+  resetTokenHash   String?
+  resetTokenExpiry DateTime?
+  orders           Order[]
 }
 
 model Product {

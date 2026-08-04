@@ -40,3 +40,17 @@ services:
         sync: false
       - key: RAZORPAY_KEY_SECRET
         sync: false
+      # Optional: SMTP for password-reset emails. Left unset, "forgot password"
+      # still runs but no email is sent (link is NOT exposed in production).
+      # Gmail example: host smtp.gmail.com, port 465, user = your address,
+      # pass = a Google App Password (https://myaccount.google.com/apppasswords).
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
