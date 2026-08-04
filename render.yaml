@@ -15,10 +15,12 @@ services:
     healthCheckPath: /api/health
     # Build the frontend, then install the server, generate the Prisma client,
     # run migrations against the managed DB, and seed the product catalogue.
+    # --include=dev forces devDependencies (vite, prisma CLI) to install even
+    # though NODE_ENV=production below would otherwise skip them.
     buildCommand: >-
-      npm --prefix web install &&
+      npm --prefix web install --include=dev &&
       npm --prefix web run build &&
-      npm --prefix server install &&
+      npm --prefix server install --include=dev &&
       npm --prefix server run prisma:generate &&
       npm --prefix server run prisma:deploy &&
       npm --prefix server run seed
