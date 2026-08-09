@@ -26,4 +26,21 @@ function requireUser(req, res, next) {
   next();
 }
 
-module.exports = { signToken, attachUser, requireUser };
+// Seller/admin access is granted to any account whose email is listed in the
+// ADMIN_EMAILS env var (comma-separated). Server-side only — never trusted from
+// the client. Set it to your own account email to see the seller dashboard.
+function isAdminEmail(email) {
+  const list = (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  return Boolean(email) && list.includes(email.toLowerCase());
+}
+
+function requireAdmin(req, res, next) {
+  if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+  if (!isAdminEmail(req.user.email)) return res.status(403).json({ error: 'Seller access only' });
+  next();
+}
+
+module.exports = { signToken, attachUser, requireUser, requireAdmin, isAdminEmail };

@@ -3,7 +3,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const { z } = require('zod');
 const prisma = require('../lib/prisma');
-const { signToken, attachUser, requireUser } = require('../middleware/auth');
+const { signToken, attachUser, requireUser, isAdminEmail } = require('../middleware/auth');
 const { emailEnabled, sendMail } = require('../lib/mailer');
 const asyncHandler = require('../lib/asyncHandler');
 
@@ -40,7 +40,7 @@ const resetSchema = z.object({
 });
 
 function publicUser(u) {
-  return { id: u.id, name: u.name, email: u.email };
+  return { id: u.id, name: u.name, email: u.email, isAdmin: isAdminEmail(u.email) };
 }
 
 router.post('/signup', asyncHandler(async (req, res) => {

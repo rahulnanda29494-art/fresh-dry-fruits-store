@@ -19,10 +19,13 @@ export function AuthProvider({ children }) {
     else localStorage.removeItem(STORAGE_KEY);
   }, [auth]);
 
-  // Validate the stored token is still good on load; silently log out if not.
+  // Validate the stored token on load and refresh the user (so fields like
+  // isAdmin stay current without a re-login); silently log out if invalid.
   useEffect(() => {
     if (!auth?.token) return;
-    api.me(auth.token).catch(() => setAuth(null));
+    api.me(auth.token)
+      .then(({ user }) => setAuth((a) => (a ? { ...a, user } : a)))
+      .catch(() => setAuth(null));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -34,6 +34,10 @@ services:
         generateValue: true          # Render generates a strong random secret
       - key: NODE_ENV
         value: production
+      # Comma-separated emails that get seller/admin access to /seller + all
+      # orders. Set this to your own account email in the Render dashboard.
+      - key: ADMIN_EMAILS
+        sync: false
       # Optional: set these in the Render dashboard to enable REAL UPI/card
       # charging. Left unset, checkout records simulated `test-paid` orders.
       - key: RAZORPAY_KEY_ID

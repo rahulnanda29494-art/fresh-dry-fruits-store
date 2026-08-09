@@ -26,6 +26,7 @@ import Blog from './pages/Blog';
 import Orders from './pages/Orders';
 import Account from './pages/Account';
 import ResetPassword from './pages/ResetPassword';
+import Seller from './pages/Seller';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -54,6 +55,7 @@ function Shell() {
           <Route path="/orders" element={<Orders />} />
           <Route path="/account" element={<Account />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/seller" element={<Seller />} />
         </Routes>
       </main>
       <Footer />

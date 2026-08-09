@@ -8,6 +8,7 @@ const productsRouter = require('./routes/products');
 const authRouter = require('./routes/auth');
 const ordersRouter = require('./routes/orders');
 const checkoutRouter = require('./routes/checkout');
+const adminRouter = require('./routes/admin');
 
 const app = express();
 app.use(cors());
@@ -18,6 +19,7 @@ app.use('/api/products', productsRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/checkout', checkoutRouter);
+app.use('/api/admin', adminRouter);
 
 // In production the built React app is served from the same origin as the API,
 // so the frontend calls a relative `/api` and there's no cross-origin config.

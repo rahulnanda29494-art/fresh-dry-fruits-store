@@ -33,6 +33,7 @@ export const api = {
   createRazorpayOrder: (payload, token) => request('/checkout/create-razorpay-order', { method: 'POST', body: payload, token }),
   createOrder: (payload, token) => request('/orders', { method: 'POST', body: payload, token }),
   getMyOrders: (token) => request('/orders', { token }),
+  getAdminOrders: (token) => request('/admin/orders', { token }),
   // By order number: signed-in owner only. By token: the confirmation lookup,
   // which also works for guests — the token comes back from createOrder.
   getOrder: (orderNo, token) => request(`/orders/${orderNo}`, { token }),

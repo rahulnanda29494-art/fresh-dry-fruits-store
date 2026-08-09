@@ -154,6 +154,7 @@ export default function Nav({ onOpenAuth }) {
                   <div style={{ fontSize: 11.5, color: '#8a7a63', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</div>
                 </div>
                 {[
+                  ...(user.isAdmin ? [{ label: '📊 Seller dashboard', onClick: () => navigate('/seller') }] : []),
                   { label: 'Manage profile', onClick: () => navigate('/account') },
                   { label: 'Change password', onClick: () => navigate('/account#password') },
                   { label: 'My orders', onClick: () => navigate('/orders') },
@@ -202,6 +203,7 @@ export default function Nav({ onOpenAuth }) {
             { label: 'Orders', onClick: () => navigate('/orders') },
             ...(user
               ? [
+                  ...(user.isAdmin ? [{ label: '📊 Seller dashboard', onClick: () => navigate('/seller') }] : []),
                   { label: 'Manage profile', onClick: () => navigate('/account') },
                   { label: 'Change password', onClick: () => navigate('/account#password') },
                   { label: 'Sign out', onClick: () => { logout(); navigate('/'); } },
