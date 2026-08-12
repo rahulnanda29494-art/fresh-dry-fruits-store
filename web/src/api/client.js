@@ -34,6 +34,7 @@ export const api = {
   createOrder: (payload, token) => request('/orders', { method: 'POST', body: payload, token }),
   getMyOrders: (token) => request('/orders', { token }),
   getAdminOrders: (token) => request('/admin/orders', { token }),
+  updateOrderStatus: (orderNo, status, token) => request(`/admin/orders/${orderNo}/status`, { method: 'PATCH', body: { status }, token }),
   // By order number: signed-in owner only. By token: the confirmation lookup,
   // which also works for guests — the token comes back from createOrder.
   getOrder: (orderNo, token) => request(`/orders/${orderNo}`, { token }),
