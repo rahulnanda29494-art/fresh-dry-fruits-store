@@ -31,34 +31,107 @@ function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// Store identity shown on invoices. Fill `gstin` to switch the header to a GST
+// "TAX INVOICE"; edit the address/contact to your real registered details.
+const STORE = {
+  name: 'Fresh Dry Fruits',
+  tagline: "NATURE'S FINEST · SINCE 1998",
+  addr1: 'Fresh Dry Fruits Pvt. Ltd.',
+  addr2: 'Trimbak Road, Nashik, Maharashtra 422002, India',
+  phone: '+91 93152 23605',
+  email: 'care@freshdryfruits.in',
+  gstin: '',
+};
+
+function amountInWords(num) {
+  const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  const two = (x) => (x < 20 ? a[x] : b[Math.floor(x / 10)] + (x % 10 ? ' ' + a[x % 10] : ''));
+  const three = (x) => { const h = Math.floor(x / 100), r = x % 100; return (h ? a[h] + ' Hundred' + (r ? ' ' : '') : '') + (r ? two(r) : ''); };
+  let n = Math.round(num);
+  if (n === 0) return 'Zero';
+  let out = '';
+  const cr = Math.floor(n / 10000000); n %= 10000000;
+  const la = Math.floor(n / 100000); n %= 100000;
+  const th = Math.floor(n / 1000); n %= 1000;
+  if (cr) out += three(cr) + ' Crore ';
+  if (la) out += three(la) + ' Lakh ';
+  if (th) out += three(th) + ' Thousand ';
+  if (n) out += three(n);
+  return out.trim();
+}
+
 function printInvoice(o) {
-  const rows = o.items.map((it) => `<tr><td>${escapeHtml(it.name)}</td><td style="text-align:center">${it.qty}</td><td style="text-align:right">${money(it.unitPrice)}</td><td style="text-align:right">${money(it.unitPrice * it.qty)}</td></tr>`).join('');
   const addr = o.fullAddress || {};
+  const rows = o.items.map((it, i) => `<tr>
+    <td style="text-align:center">${i + 1}</td>
+    <td>${escapeHtml(it.name)}${it.weight ? `<span class="muted"> · ${escapeHtml(it.weight)}</span>` : ''}</td>
+    <td style="text-align:center">${it.qty}</td>
+    <td style="text-align:right">${money(it.unitPrice)}</td>
+    <td style="text-align:right">${money(it.unitPrice * it.qty)}</td></tr>`).join('');
+  const invDate = new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  const title = STORE.gstin ? 'TAX INVOICE' : 'INVOICE';
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>Invoice FDF-${o.orderNo}</title>
-  <style>*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#2a1f12;margin:0;padding:40px;max-width:800px}
-  .top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #6A4E2F;padding-bottom:18px}
-  .brand{font-size:22px;font-weight:700;color:#6A4E2F}.brand small{display:block;font-size:10px;letter-spacing:2px;color:#B08D3E;font-weight:400}
-  .meta{text-align:right;font-size:12px;color:#555}.meta b{color:#2a1f12}
-  h2{font-size:13px;letter-spacing:1px;color:#8a7a63;text-transform:uppercase;margin:26px 0 8px}
-  .cols{display:flex;gap:40px}.cols>div{flex:1;font-size:13px;line-height:1.6}
-  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
-  th{background:#F5EFE2;color:#6A4E2F;text-align:left;padding:9px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
-  td{padding:9px 10px;border-bottom:1px solid #eee}
-  .totals{margin-top:14px;margin-left:auto;width:280px;font-size:13px}.totals div{display:flex;justify-content:space-between;padding:4px 0}
-  .totals .grand{border-top:2px solid #6A4E2F;margin-top:6px;padding-top:8px;font-size:16px;font-weight:700;color:#6A4E2F}
-  .foot{margin-top:36px;text-align:center;color:#8a7a63;font-size:12px}@media print{body{padding:0}}</style></head><body>
-    <div class="top"><div class="brand">Fresh Dry Fruits<small>NATURE'S FINEST · SINCE 1998</small></div>
-    <div class="meta"><b>INVOICE</b><br>#FDF-${o.orderNo}<br>${new Date(o.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}<br>Payment: ${METHOD_LABEL[o.paymentMethod] || o.paymentMethod} · ${escapeHtml(o.paymentStatus)}<br>Status: ${escapeHtml(o.status)}</div></div>
-    <div class="cols"><div><h2>Billed to</h2>${escapeHtml(o.customerName)}<br>${escapeHtml(o.customerEmail)}<br>${escapeHtml(o.phone)}</div>
-    <div><h2>Ship to</h2>${escapeHtml([addr.line1, addr.city, addr.pin].filter(Boolean).join(', ') || o.address)}</div></div>
-    <h2>Items</h2><table><thead><tr><th>Product</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="totals"><div><span>Subtotal</span><span>${money(o.subtotal)}</span></div>
-    ${o.discount > 0 ? `<div><span>Discount${o.couponCode ? ' (' + escapeHtml(o.couponCode) + ')' : ''}</span><span>-${money(o.discount)}</span></div>` : ''}
-    <div><span>Shipping</span><span>${o.shipping === 0 ? 'FREE' : money(o.shipping)}</span></div>
-    <div class="grand"><span>Total</span><span>${money(o.total)}</span></div></div>
-    <div class="foot">Thank you for shopping with Fresh Dry Fruits 🌰</div>
-    <script>window.onload=function(){window.print();}</script></body></html>`;
-  const w = window.open('', '_blank', 'width=820,height=900');
+  <style>@page{size:A4;margin:14mm}*{box-sizing:border-box}
+  body{font-family:Arial,Helvetica,sans-serif;color:#2a1f12;margin:0;padding:28px;max-width:820px;font-size:12.5px;line-height:1.5}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #6A4E2F;padding-bottom:14px}
+  .brand .nm{font-size:22px;font-weight:800;color:#6A4E2F;letter-spacing:.3px}
+  .brand .tag{font-size:9px;letter-spacing:2px;color:#B08D3E;margin:2px 0 8px}
+  .brand .ln{font-size:11px;color:#555;line-height:1.6}
+  .doc{text-align:right}.doc .ttl{font-size:20px;font-weight:800;color:#2a1f12;letter-spacing:1px}
+  .doc table{margin-top:8px;font-size:11.5px;border-collapse:collapse;margin-left:auto}
+  .doc td{padding:2px 0 2px 14px;text-align:right;color:#555}.doc td b{color:#2a1f12}
+  .parties{display:flex;gap:28px;margin-top:18px}
+  .parties>div{flex:1;background:#FBF7EE;border:1px solid #efe6d4;border-radius:8px;padding:12px 14px}
+  .parties h3{margin:0 0 6px;font-size:10px;letter-spacing:1px;color:#8a7a63;text-transform:uppercase}
+  .parties .nm{font-weight:700}
+  table.items{width:100%;border-collapse:collapse;margin-top:18px}
+  table.items th{background:#6A4E2F;color:#fff;text-align:left;padding:9px 10px;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px}
+  table.items td{padding:9px 10px;border-bottom:1px solid #eee}
+  .muted{color:#999;font-size:11px}
+  .bottom{display:flex;justify-content:space-between;gap:28px;margin-top:16px}
+  .words{flex:1;font-size:11.5px;color:#4a3a26}
+  .words b{display:block;font-size:10px;letter-spacing:1px;color:#8a7a63;text-transform:uppercase;margin-bottom:3px}
+  .totals{width:270px;font-size:12.5px}.totals div{display:flex;justify-content:space-between;padding:4px 0}
+  .totals .grand{border-top:2px solid #6A4E2F;margin-top:6px;padding-top:8px;font-size:16px;font-weight:800;color:#6A4E2F}
+  .pay{margin-top:16px;background:#F5EFE2;border-radius:8px;padding:10px 14px;font-size:11.5px;color:#4a3a26}
+  .terms{margin-top:14px;font-size:10.5px;color:#8a7a63;line-height:1.6}
+  .sign{display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px}
+  .sign .box{text-align:center;font-size:11px;color:#555}
+  .sign .line{border-top:1px solid #999;width:170px;margin-bottom:4px;padding-top:38px}
+  .foot{margin-top:18px;text-align:center;color:#a08a63;font-size:10px;border-top:1px dashed #ddd;padding-top:10px}
+  @media print{body{padding:0}}</style></head><body>
+  <div class="hdr">
+    <div class="brand"><div class="nm">${STORE.name}</div><div class="tag">${STORE.tagline}</div>
+      <div class="ln">${escapeHtml(STORE.addr1)}<br>${escapeHtml(STORE.addr2)}<br>Tel: ${escapeHtml(STORE.phone)} · ${escapeHtml(STORE.email)}${STORE.gstin ? `<br>GSTIN: ${escapeHtml(STORE.gstin)}` : ''}</div></div>
+    <div class="doc"><div class="ttl">${title}</div>
+      <table>
+        <tr><td>Invoice No</td><td><b>FDF-${o.orderNo}</b></td></tr>
+        <tr><td>Invoice Date</td><td><b>${invDate}</b></td></tr>
+        <tr><td>Order Ref</td><td>#${o.orderNo}</td></tr>
+        <tr><td>Fulfilment</td><td>${escapeHtml((o.status || '').toUpperCase())}</td></tr>
+      </table></div>
+  </div>
+  <div class="parties">
+    <div><h3>Billed to</h3><div class="nm">${escapeHtml(o.customerName)}</div>${escapeHtml(o.customerEmail)}<br>${escapeHtml(o.phone)}</div>
+    <div><h3>Shipped to</h3><div class="nm">${escapeHtml(addr.fullName || o.customerName)}</div>${escapeHtml(addr.line1 || '')}<br>${escapeHtml([addr.city, addr.pin].filter(Boolean).join(' - ') || o.address)}<br>${escapeHtml(addr.phone || o.phone)}</div>
+  </div>
+  <table class="items"><thead><tr><th style="width:36px;text-align:center">#</th><th>Description</th><th style="text-align:center;width:50px">Qty</th><th style="text-align:right;width:90px">Rate</th><th style="text-align:right;width:100px">Amount</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="bottom">
+    <div class="words"><b>Amount in words</b>Rupees ${amountInWords(o.total)} Only</div>
+    <div class="totals">
+      <div><span>Subtotal</span><span>${money(o.subtotal)}</span></div>
+      ${o.discount > 0 ? `<div><span>Discount${o.couponCode ? ' (' + escapeHtml(o.couponCode) + ')' : ''}</span><span>- ${money(o.discount)}</span></div>` : ''}
+      <div><span>Shipping</span><span>${o.shipping === 0 ? 'FREE' : money(o.shipping)}</span></div>
+      <div class="grand"><span>Grand Total</span><span>${money(o.total)}</span></div>
+    </div>
+  </div>
+  <div class="pay"><b>Payment</b> — ${METHOD_LABEL[o.paymentMethod] || o.paymentMethod} · ${escapeHtml((o.paymentStatus || '').toUpperCase())}${o.paymentRef ? ` · Ref: ${escapeHtml(o.paymentRef)}` : ''}</div>
+  <div class="terms">Prices are inclusive of all applicable taxes. Returns accepted within 7 days of delivery on unopened items per our return policy. For queries contact ${escapeHtml(STORE.email)} or ${escapeHtml(STORE.phone)}.</div>
+  <div class="sign"><div class="box"><div class="line"></div>Customer Signature</div><div class="box"><div class="line"></div>For ${escapeHtml(STORE.name)}<br>Authorised Signatory</div></div>
+  <div class="foot">This is a computer-generated invoice and does not require a physical signature. · Thank you for shopping with ${escapeHtml(STORE.name)} 🌰</div>
+  <script>window.onload=function(){window.print();}</script></body></html>`;
+  const w = window.open('', '_blank', 'width=880,height=1000');
   if (!w) { alert('Please allow pop-ups to print the invoice.'); return; }
   w.document.write(html); w.document.close();
 }

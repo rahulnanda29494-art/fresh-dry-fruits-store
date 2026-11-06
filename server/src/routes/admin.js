@@ -60,12 +60,13 @@ function serializeAdminOrder(o) {
     fullAddress: addr,
     paymentMethod: o.paymentMethod,
     paymentStatus: o.paymentStatus,
+    paymentRef: o.razorpayPaymentId || o.razorpayOrderId || null,
     subtotal: o.subtotal,
     discount: o.discount,
     shipping: o.shipping,
     total: o.total,
     couponCode: o.couponCode,
-    items: o.items.map((i) => ({ name: i.product.name, qty: i.qty, unitPrice: i.unitPrice })),
+    items: o.items.map((i) => ({ name: i.product.name, weight: i.product.weight, qty: i.qty, unitPrice: i.unitPrice })),
   };
 }
 
