@@ -14,12 +14,16 @@ router.get('/orders', attachUser, requireAdmin, asyncHandler(async (_req, res) =
   });
 
   const paidStatuses = ['paid', 'test-paid', 'cod'];
+  const totalRevenue = orders.reduce((t, o) => t + o.total, 0);
   const summary = {
     totalOrders: orders.length,
-    totalRevenue: orders.reduce((t, o) => t + o.total, 0),
+    totalRevenue,
     paidRevenue: orders.filter((o) => paidStatuses.includes(o.paymentStatus)).reduce((t, o) => t + o.total, 0),
+    avgOrderValue: orders.length ? Math.round(totalRevenue / orders.length) : 0,
     totalItems: orders.reduce((t, o) => t + o.items.reduce((s, i) => s + i.qty, 0), 0),
     byMethod: orders.reduce((m, o) => { m[o.paymentMethod] = (m[o.paymentMethod] || 0) + 1; return m; }, {}),
+    byMethodRevenue: orders.reduce((m, o) => { m[o.paymentMethod] = (m[o.paymentMethod] || 0) + o.total; return m; }, {}),
+    byStatus: orders.reduce((m, o) => { m[o.status] = (m[o.status] || 0) + 1; return m; }, {}),
   };
 
   res.json({ summary, orders: orders.map(serializeAdminOrder) });
