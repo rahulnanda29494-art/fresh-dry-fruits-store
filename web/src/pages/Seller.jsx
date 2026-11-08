@@ -236,6 +236,8 @@ export default function Seller() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [methodFilter, setMethodFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [salesFrom, setSalesFrom] = useState('');
+  const [salesTo, setSalesTo] = useState('');
 
   useEffect(() => {
     if (!token || !user?.isAdmin) return;
@@ -292,6 +294,36 @@ export default function Seller() {
       (!q || o.orderNo.includes(q) || (o.customerName || '').toLowerCase().includes(q) || (o.customerEmail || '').toLowerCase().includes(q))
     );
   }, [data, statusFilter, methodFilter, search]);
+
+  // Sales report, recomputed over the selected date range (inclusive, local dates).
+  const salesRange = useMemo(() => {
+    if (!data) return null;
+    const byDay = {}, byMonth = {};
+    let total = 0, count = 0, items = 0;
+    for (const o of data.orders) {
+      const day = new Date(o.createdAt).toLocaleDateString('en-CA');
+      if (salesFrom && day < salesFrom) continue;
+      if (salesTo && day > salesTo) continue;
+      const mon = day.slice(0, 7);
+      const it = o.items.reduce((s, i) => s + i.qty, 0);
+      (byDay[day] = byDay[day] || { count: 0, revenue: 0, items: 0 });
+      byDay[day].count++; byDay[day].revenue += o.total; byDay[day].items += it;
+      (byMonth[mon] = byMonth[mon] || { count: 0, revenue: 0, items: 0 });
+      byMonth[mon].count++; byMonth[mon].revenue += o.total; byMonth[mon].items += it;
+      total += o.total; count++; items += it;
+    }
+    const sortDesc = (obj) => Object.entries(obj).sort((a, b) => b[0].localeCompare(a[0]));
+    return { byDay: sortDesc(byDay), byMonth: sortDesc(byMonth), total, count, items };
+  }, [data, salesFrom, salesTo]);
+
+  function salesPreset(kind) {
+    const now = new Date();
+    const today = now.toLocaleDateString('en-CA');
+    if (kind === 'month') { setSalesFrom(today.slice(0, 7) + '-01'); setSalesTo(today); }
+    else if (kind === '30') { const d = new Date(now); d.setDate(d.getDate() - 29); setSalesFrom(d.toLocaleDateString('en-CA')); setSalesTo(today); }
+    else if (kind === 'year') { setSalesFrom(today.slice(0, 4) + '-01-01'); setSalesTo(today); }
+    else { setSalesFrom(''); setSalesTo(''); }
+  }
 
   async function setStatus(orderNo, status) {
     setBusy(orderNo);
@@ -455,10 +487,28 @@ export default function Seller() {
         </>
       )}
 
-      {view === 'sales' && analytics && (
-        <div style={{ display: 'grid', gap: 26 }}>
-          <SalesTable title="Month-wise sales" rows={analytics.byMonth} fmt={(k) => new Date(k + '-01').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })} />
-          <SalesTable title="Day-wise sales" rows={analytics.byDay} fmt={(k) => new Date(k).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} />
+      {view === 'sales' && salesRange && (
+        <div style={{ display: 'grid', gap: 20 }}>
+          <div style={{ ...card, padding: '16px 18px', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={labelCss}>From</span>
+            <input type="date" value={salesFrom} max={salesTo || undefined} onChange={(e) => setSalesFrom(e.target.value)} style={selectCss} />
+            <span style={labelCss}>To</span>
+            <input type="date" value={salesTo} min={salesFrom || undefined} onChange={(e) => setSalesTo(e.target.value)} style={selectCss} />
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {[['month', 'This month'], ['30', 'Last 30 days'], ['year', 'This year'], ['', 'All']].map(([k, lbl]) => (
+                <button key={lbl} onClick={() => salesPreset(k)} style={{ fontFamily: 'Montserrat,sans-serif', fontWeight: 600, fontSize: 11.5, padding: '7px 12px', borderRadius: 100, cursor: 'pointer', border: '1px solid rgba(106,78,47,.22)', background: '#fff', color: '#6A4E2F' }}>{lbl}</button>
+              ))}
+            </div>
+            <span style={{ marginLeft: 'auto', fontSize: 12.5, color: '#6c5c47' }}><b style={{ color: '#6A4E2F' }}>{salesRange.count}</b> orders · <b style={{ color: '#6A4E2F' }}>{money(salesRange.total)}</b>{(salesFrom || salesTo) ? ' in range' : ''}</span>
+          </div>
+          {salesRange.count === 0 ? (
+            <div style={{ ...card, padding: 36, textAlign: 'center', color: '#8a7a63' }}>No sales in this date range.</div>
+          ) : (
+            <>
+              <SalesTable title="Month-wise sales" rows={salesRange.byMonth} fmt={(k) => new Date(k + '-01').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })} />
+              <SalesTable title="Day-wise sales" rows={salesRange.byDay} fmt={(k) => new Date(k).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} />
+            </>
+          )}
         </div>
       )}
     </>
