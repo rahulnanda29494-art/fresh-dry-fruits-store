@@ -246,31 +246,34 @@ export default function Seller() {
     return () => { cancelled = true; };
   }, [token, user]);
 
+  // Range-aware analytics — drives both the Overview and the Sales report, so
+  // the From/To date range applies everywhere.
   const analytics = useMemo(() => {
     if (!data) return null;
-    const orders = data.orders;
-    const byDay = {}, byMonth = {}, prod = {}, cust = {};
-    const todayStr = new Date().toLocaleDateString('en-CA');
-    const monthStr = todayStr.slice(0, 7);
-    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 6);
-    let today = 0, week = 0, month = 0, pending = 0;
-
+    const orders = data.orders.filter((o) => {
+      const day = new Date(o.createdAt).toLocaleDateString('en-CA');
+      if (salesFrom && day < salesFrom) return false;
+      if (salesTo && day > salesTo) return false;
+      return true;
+    });
+    const byDay = {}, byMonth = {}, prod = {}, cust = {}, byStatus = {}, byMethod = {}, byMethodRevenue = {};
+    let revenue = 0, items = 0, pending = 0;
     for (const o of orders) {
-      const dt = new Date(o.createdAt);
-      const day = dt.toLocaleDateString('en-CA');
+      const day = new Date(o.createdAt).toLocaleDateString('en-CA');
       const mon = day.slice(0, 7);
-      const items = o.items.reduce((s, i) => s + i.qty, 0);
+      const it = o.items.reduce((s, i) => s + i.qty, 0);
       (byDay[day] = byDay[day] || { count: 0, revenue: 0, items: 0 });
-      byDay[day].count++; byDay[day].revenue += o.total; byDay[day].items += items;
+      byDay[day].count++; byDay[day].revenue += o.total; byDay[day].items += it;
       (byMonth[mon] = byMonth[mon] || { count: 0, revenue: 0, items: 0 });
-      byMonth[mon].count++; byMonth[mon].revenue += o.total; byMonth[mon].items += items;
-      if (day === todayStr) today += o.total;
-      if (dt >= weekAgo) week += o.total;
-      if (mon === monthStr) month += o.total;
+      byMonth[mon].count++; byMonth[mon].revenue += o.total; byMonth[mon].items += it;
+      revenue += o.total; items += it;
       if (o.status === 'confirmed') pending++;
-      for (const it of o.items) {
-        (prod[it.name] = prod[it.name] || { qty: 0, revenue: 0 });
-        prod[it.name].qty += it.qty; prod[it.name].revenue += it.unitPrice * it.qty;
+      byStatus[o.status] = (byStatus[o.status] || 0) + 1;
+      byMethod[o.paymentMethod] = (byMethod[o.paymentMethod] || 0) + 1;
+      byMethodRevenue[o.paymentMethod] = (byMethodRevenue[o.paymentMethod] || 0) + o.total;
+      for (const x of o.items) {
+        (prod[x.name] = prod[x.name] || { qty: 0, revenue: 0 });
+        prod[x.name].qty += x.qty; prod[x.name].revenue += x.unitPrice * x.qty;
       }
       const key = o.customerEmail || o.customerName;
       (cust[key] = cust[key] || { name: o.customerName, orders: 0, spend: 0 });
@@ -282,8 +285,9 @@ export default function Seller() {
       .map(([name, v]) => ({ label: name, value: v.revenue, display: `${money(v.revenue)} · ${v.qty}` }));
     const topCustomers = Object.values(cust).sort((a, b) => b.spend - a.spend).slice(0, 6)
       .map((c) => ({ label: c.name, value: c.spend, display: `${money(c.spend)} · ${c.orders}` }));
-    return { byDay: sortDesc(byDay), byMonth: sortDesc(byMonth), monthsAsc, topProducts, topCustomers, today, week, month, pending };
-  }, [data]);
+    const count = orders.length;
+    return { count, revenue, avgOrderValue: count ? Math.round(revenue / count) : 0, items, pending, byStatus, byMethod, byMethodRevenue, byDay: sortDesc(byDay), byMonth: sortDesc(byMonth), monthsAsc, topProducts, topCustomers };
+  }, [data, salesFrom, salesTo]);
 
   const filtered = useMemo(() => {
     if (!data) return [];
@@ -294,27 +298,6 @@ export default function Seller() {
       (!q || o.orderNo.includes(q) || (o.customerName || '').toLowerCase().includes(q) || (o.customerEmail || '').toLowerCase().includes(q))
     );
   }, [data, statusFilter, methodFilter, search]);
-
-  // Sales report, recomputed over the selected date range (inclusive, local dates).
-  const salesRange = useMemo(() => {
-    if (!data) return null;
-    const byDay = {}, byMonth = {};
-    let total = 0, count = 0, items = 0;
-    for (const o of data.orders) {
-      const day = new Date(o.createdAt).toLocaleDateString('en-CA');
-      if (salesFrom && day < salesFrom) continue;
-      if (salesTo && day > salesTo) continue;
-      const mon = day.slice(0, 7);
-      const it = o.items.reduce((s, i) => s + i.qty, 0);
-      (byDay[day] = byDay[day] || { count: 0, revenue: 0, items: 0 });
-      byDay[day].count++; byDay[day].revenue += o.total; byDay[day].items += it;
-      (byMonth[mon] = byMonth[mon] || { count: 0, revenue: 0, items: 0 });
-      byMonth[mon].count++; byMonth[mon].revenue += o.total; byMonth[mon].items += it;
-      total += o.total; count++; items += it;
-    }
-    const sortDesc = (obj) => Object.entries(obj).sort((a, b) => b[0].localeCompare(a[0]));
-    return { byDay: sortDesc(byDay), byMonth: sortDesc(byMonth), total, count, items };
-  }, [data, salesFrom, salesTo]);
 
   function salesPreset(kind) {
     const now = new Date();
@@ -354,7 +337,6 @@ export default function Seller() {
   if (error) return shell(<div style={{ color: '#EA4335', fontSize: 14 }}>Couldn’t load orders: {error}</div>);
   if (!data) return shell(<div style={{ color: '#8a7a63', fontSize: 14 }}>Loading dashboard…</div>);
 
-  const { summary } = data;
   const tabBtn = (id, label) => (
     <button onClick={() => setView(id)} style={{ fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 13, padding: '9px 20px', borderRadius: 100, cursor: 'pointer', border: '1.5px solid ' + (view === id ? '#6A4E2F' : 'rgba(106,78,47,.2)'), background: view === id ? '#6A4E2F' : '#fff', color: view === id ? '#fff' : '#6A4E2F' }}>{label}</button>
   );
@@ -362,6 +344,22 @@ export default function Seller() {
     <button onClick={onClick} disabled={busy} style={{ fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 11.5, padding: '8px 14px', borderRadius: 100, cursor: busy ? 'default' : 'pointer', border: '1.5px solid ' + (primary ? '#2a5bb8' : 'rgba(106,78,47,.25)'), background: primary ? '#2a5bb8' : '#fff', color: primary ? '#fff' : '#6A4E2F', opacity: busy ? 0.6 : 1 }}>{label}</button>
   );
   const selectCss = { fontFamily: "'Poppins',sans-serif", fontSize: 13, padding: '9px 12px', borderRadius: 10, border: '1px solid rgba(106,78,47,.2)', background: '#fff', color: '#3a2c1a', outline: 'none' };
+
+  // Shared date-range control — the same range drives the Overview and the Sales report.
+  const rangeBar = (
+    <div style={{ ...card, padding: '14px 16px', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+      <span style={labelCss}>From</span>
+      <input type="date" value={salesFrom} max={salesTo || undefined} onChange={(e) => setSalesFrom(e.target.value)} style={selectCss} />
+      <span style={labelCss}>To</span>
+      <input type="date" value={salesTo} min={salesFrom || undefined} onChange={(e) => setSalesTo(e.target.value)} style={selectCss} />
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {[['month', 'This month'], ['30', 'Last 30 days'], ['year', 'This year'], ['', 'All']].map(([k, lbl]) => (
+          <button key={lbl} onClick={() => salesPreset(k)} style={{ fontFamily: 'Montserrat,sans-serif', fontWeight: 600, fontSize: 11.5, padding: '7px 12px', borderRadius: 100, cursor: 'pointer', border: '1px solid rgba(106,78,47,.22)', background: '#fff', color: '#6A4E2F' }}>{lbl}</button>
+        ))}
+      </div>
+      <span style={{ marginLeft: 'auto', fontSize: 12.5, color: '#6c5c47' }}>{(salesFrom || salesTo) ? 'Range: ' : 'All time · '}<b style={{ color: '#6A4E2F' }}>{analytics.count}</b> orders · <b style={{ color: '#6A4E2F' }}>{money(analytics.revenue)}</b></span>
+    </div>
+  );
 
   return shell(
     <>
@@ -373,12 +371,12 @@ export default function Seller() {
 
       {view === 'overview' && analytics && (
         <div style={{ display: 'grid', gap: 22 }}>
+          {rangeBar}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 14 }}>
-            <Tile label="Total revenue" value={money(summary.totalRevenue)} sub={`${summary.totalOrders} orders`} />
-            <Tile label="Avg order value" value={money(summary.avgOrderValue)} />
-            <Tile label="This month" value={money(analytics.month)} />
-            <Tile label="Today" value={money(analytics.today)} sub={`7-day ${money(analytics.week)}`} />
-            <Tile label="Items sold" value={summary.totalItems} />
+            <Tile label="Revenue" value={money(analytics.revenue)} sub={`${analytics.count} orders`} />
+            <Tile label="Orders" value={analytics.count} />
+            <Tile label="Avg order value" value={money(analytics.avgOrderValue)} />
+            <Tile label="Items sold" value={analytics.items} />
             <Tile label="To ship" value={analytics.pending} sub="confirmed, unshipped" />
           </div>
 
@@ -406,7 +404,7 @@ export default function Seller() {
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 {['confirmed', 'shipped', 'delivered', 'cancelled'].map((s) => (
                   <div key={s} style={{ flex: '1 1 110px', background: (FULFIL[s].bg), borderRadius: 12, padding: '12px 14px' }}>
-                    <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: FULFIL[s].fg }}>{summary.byStatus?.[s] || 0}</div>
+                    <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: FULFIL[s].fg }}>{analytics.byStatus?.[s] || 0}</div>
                     <div style={{ fontSize: 11.5, color: FULFIL[s].fg, fontWeight: 600 }}>{FULFIL[s].label}</div>
                   </div>
                 ))}
@@ -414,7 +412,7 @@ export default function Seller() {
             </div>
             <div style={{ ...card, padding: '18px 22px' }}>
               <h3 style={{ ...cardHead, marginBottom: 12 }}>Revenue by payment method</h3>
-              <BarList rows={Object.entries(summary.byMethodRevenue || {}).sort((a, b) => b[1] - a[1]).map(([m, rev]) => ({ label: METHOD_LABEL[m] || m, value: rev, display: `${money(rev)} · ${summary.byMethod[m]}` }))} />
+              {Object.keys(analytics.byMethodRevenue).length ? <BarList rows={Object.entries(analytics.byMethodRevenue).sort((a, b) => b[1] - a[1]).map(([m, rev]) => ({ label: METHOD_LABEL[m] || m, value: rev, display: `${money(rev)} · ${analytics.byMethod[m]}` }))} /> : <div style={{ color: '#8a7a63', fontSize: 13 }}>No data.</div>}
             </div>
           </div>
         </div>
@@ -487,26 +485,15 @@ export default function Seller() {
         </>
       )}
 
-      {view === 'sales' && salesRange && (
+      {view === 'sales' && analytics && (
         <div style={{ display: 'grid', gap: 20 }}>
-          <div style={{ ...card, padding: '16px 18px', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={labelCss}>From</span>
-            <input type="date" value={salesFrom} max={salesTo || undefined} onChange={(e) => setSalesFrom(e.target.value)} style={selectCss} />
-            <span style={labelCss}>To</span>
-            <input type="date" value={salesTo} min={salesFrom || undefined} onChange={(e) => setSalesTo(e.target.value)} style={selectCss} />
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {[['month', 'This month'], ['30', 'Last 30 days'], ['year', 'This year'], ['', 'All']].map(([k, lbl]) => (
-                <button key={lbl} onClick={() => salesPreset(k)} style={{ fontFamily: 'Montserrat,sans-serif', fontWeight: 600, fontSize: 11.5, padding: '7px 12px', borderRadius: 100, cursor: 'pointer', border: '1px solid rgba(106,78,47,.22)', background: '#fff', color: '#6A4E2F' }}>{lbl}</button>
-              ))}
-            </div>
-            <span style={{ marginLeft: 'auto', fontSize: 12.5, color: '#6c5c47' }}><b style={{ color: '#6A4E2F' }}>{salesRange.count}</b> orders · <b style={{ color: '#6A4E2F' }}>{money(salesRange.total)}</b>{(salesFrom || salesTo) ? ' in range' : ''}</span>
-          </div>
-          {salesRange.count === 0 ? (
+          {rangeBar}
+          {analytics.count === 0 ? (
             <div style={{ ...card, padding: 36, textAlign: 'center', color: '#8a7a63' }}>No sales in this date range.</div>
           ) : (
             <>
-              <SalesTable title="Month-wise sales" rows={salesRange.byMonth} fmt={(k) => new Date(k + '-01').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })} />
-              <SalesTable title="Day-wise sales" rows={salesRange.byDay} fmt={(k) => new Date(k).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} />
+              <SalesTable title="Month-wise sales" rows={analytics.byMonth} fmt={(k) => new Date(k + '-01').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })} />
+              <SalesTable title="Day-wise sales" rows={analytics.byDay} fmt={(k) => new Date(k).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} />
             </>
           )}
         </div>
