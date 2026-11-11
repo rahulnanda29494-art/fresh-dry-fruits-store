@@ -38,14 +38,19 @@ export default function Footer() {
         </div>
         <div>
           <h4 style={headingStyle}>SUPPORT</h4>
-          <a href="#" style={linkStyle}>Track Order</a>
-          <a href="#" style={linkStyle}>Shipping & Returns</a>
-          <a href="#" style={linkStyle}>FAQ</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navigate('/orders'); }} style={linkStyle}>Track Order</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navigate('/legal/shipping'); }} style={linkStyle}>Shipping Policy</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navigate('/legal/refund'); }} style={linkStyle}>Returns & Refunds</a>
           <a href="https://wa.me/919315223605" target="_blank" rel="noreferrer" style={linkStyle}>WhatsApp Us</a>
         </div>
       </div>
       <div style={{ maxWidth: 1360, margin: '44px auto 0', paddingTop: 24, borderTop: '1px solid rgba(255,255,255,.1)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14, fontSize: 12.5, color: '#8a7d64' }}>
         <span>© 2026 Fresh Dry Fruits. All rights reserved.</span>
+        <span style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+          {[['Terms', 'terms'], ['Privacy', 'privacy'], ['Refund', 'refund'], ['Shipping', 'shipping']].map(([lbl, slug]) => (
+            <a key={slug} href="#" onClick={(e) => { e.preventDefault(); navigate(`/legal/${slug}`); }} style={{ color: '#8a7d64', textDecoration: 'none' }}>{lbl}</a>
+          ))}
+        </span>
         <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>Secure payments · UPI · Cards · Razorpay · COD</span>
       </div>
     </footer>
