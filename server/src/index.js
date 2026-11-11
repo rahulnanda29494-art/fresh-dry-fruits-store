@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 
 const productsRouter = require('./routes/products');
 const authRouter = require('./routes/auth');
@@ -11,6 +12,12 @@ const checkoutRouter = require('./routes/checkout');
 const adminRouter = require('./routes/admin');
 
 const app = express();
+// Behind Render's proxy — needed for correct client IPs (rate limiting) and
+// https detection (reset-link URLs).
+app.set('trust proxy', 1);
+// Security headers. CSP/COEP are disabled because the SPA uses inline styles
+// and loads Razorpay Checkout + Google Fonts from other origins.
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(cors());
 app.use(express.json());
 

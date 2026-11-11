@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const { z } = require('zod');
 const prisma = require('../lib/prisma');
@@ -8,6 +9,15 @@ const { emailEnabled, sendMail } = require('../lib/mailer');
 const asyncHandler = require('../lib/asyncHandler');
 
 const router = express.Router();
+
+// Throttle credential/abuse-prone endpoints: 20 attempts per 15 min per IP.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please wait a few minutes and try again.' },
+});
 
 const signupSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -43,7 +53,7 @@ function publicUser(u) {
   return { id: u.id, name: u.name, email: u.email, isAdmin: isAdminEmail(u.email) };
 }
 
-router.post('/signup', asyncHandler(async (req, res) => {
+router.post('/signup', authLimiter, asyncHandler(async (req, res) => {
   const parsed = signupSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0].message });
   const { name, email, password } = parsed.data;
@@ -56,7 +66,7 @@ router.post('/signup', asyncHandler(async (req, res) => {
   res.status(201).json({ token: signToken(user), user: publicUser(user) });
 }));
 
-router.post('/login', asyncHandler(async (req, res) => {
+router.post('/login', authLimiter, asyncHandler(async (req, res) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0].message });
   const { email, password } = parsed.data;
@@ -109,7 +119,7 @@ router.post('/change-password', attachUser, requireUser, asyncHandler(async (req
 // Request a password reset. Always responds success (never reveals whether an
 // account exists). If the account exists, stores a hashed, 1-hour token and
 // emails a reset link — or, when no SMTP is configured in dev, returns the link.
-router.post('/forgot-password', asyncHandler(async (req, res) => {
+router.post('/forgot-password', authLimiter, asyncHandler(async (req, res) => {
   const parsed = forgotSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0].message });
   const { email } = parsed.data;
@@ -148,7 +158,7 @@ router.post('/forgot-password', asyncHandler(async (req, res) => {
 }));
 
 // Complete a password reset using the token from the emailed link.
-router.post('/reset-password', asyncHandler(async (req, res) => {
+router.post('/reset-password', authLimiter, asyncHandler(async (req, res) => {
   const parsed = resetSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0].message });
   const { token, newPassword } = parsed.data;

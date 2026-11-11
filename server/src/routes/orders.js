@@ -5,6 +5,7 @@ const prisma = require('../lib/prisma');
 const { razorpay, keySecret } = require('../lib/razorpay');
 const { priceCart, generateOrderNo, generatePublicToken } = require('../lib/pricing');
 const { attachUser, requireUser } = require('../middleware/auth');
+const { sendMail } = require('../lib/mailer');
 const asyncHandler = require('../lib/asyncHandler');
 
 const router = express.Router();
@@ -101,10 +102,41 @@ router.post('/', attachUser, asyncHandler(async (req, res) => {
     guestEmail,
   });
 
+  // Email the customer a confirmation (no-op unless SMTP is configured).
+  const toEmail = req.user ? req.user.email : guestEmail;
+  if (toEmail) sendOrderConfirmation(toEmail, serializeOrder(order), address).catch((e) => console.error('[order-email]', e.message));
+
   // publicToken is returned only here, to the person who placed the order — it
   // is their key to the confirmation lookup and is never listed elsewhere.
   res.status(201).json({ ...serializeOrder(order), publicToken: order.publicToken });
 }));
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
+
+async function sendOrderConfirmation(to, order, address) {
+  const rows = order.items.map((i) => `<tr><td style="padding:6px 0;border-bottom:1px solid #eee">${i.qty} × ${esc(i.name)}</td><td style="padding:6px 0;border-bottom:1px solid #eee;text-align:right">${inr(i.unitPrice * i.qty)}</td></tr>`).join('');
+  const payLine = order.paymentStatus === 'cod' ? 'Cash on Delivery' : `${(order.paymentMethod || '').toUpperCase()} · ${order.paymentStatus === 'paid' ? 'Paid' : order.paymentStatus}`;
+  const html = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#2a1f12">
+    <h2 style="color:#6A4E2F;margin:0 0 4px">Fresh Dry Fruits</h2>
+    <p style="color:#8a7a63;margin:0 0 18px;font-size:13px">Order confirmed 🌰</p>
+    <p>Hi ${esc(address.fullName || 'there')}, thanks for your order! We've received it and will get it on its way.</p>
+    <p style="font-size:15px"><b>Order #FDF-${esc(order.orderNo)}</b></p>
+    <table style="width:100%;border-collapse:collapse;font-size:14px">${rows}</table>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:8px">
+      <tr><td style="padding:3px 0">Subtotal</td><td style="text-align:right">${inr(order.subtotal)}</td></tr>
+      ${order.discount > 0 ? `<tr><td style="padding:3px 0">Discount${order.couponCode ? ' (' + esc(order.couponCode) + ')' : ''}</td><td style="text-align:right">-${inr(order.discount)}</td></tr>` : ''}
+      <tr><td style="padding:3px 0">Shipping</td><td style="text-align:right">${order.shipping === 0 ? 'FREE' : inr(order.shipping)}</td></tr>
+      <tr><td style="padding:8px 0;font-weight:bold;border-top:2px solid #6A4E2F">Total</td><td style="text-align:right;font-weight:bold;border-top:2px solid #6A4E2F">${inr(order.total)}</td></tr>
+    </table>
+    <p style="font-size:13px;color:#6c5c47;margin-top:16px">Payment: ${esc(payLine)}<br>Delivering to: ${esc([address.line1, address.city, address.pin].filter(Boolean).join(', '))}</p>
+    <p style="font-size:12px;color:#a08a63;margin-top:22px;border-top:1px dashed #ddd;padding-top:12px">Questions? Just reply to this email. Thank you for shopping with Fresh Dry Fruits.</p>
+  </div>`;
+  const text = `Order confirmed — #FDF-${order.orderNo}\n\n${order.items.map((i) => `${i.qty} x ${i.name} — ${inr(i.unitPrice * i.qty)}`).join('\n')}\n\nTotal: ${inr(order.total)}\nPayment: ${payLine}\n\nThank you for shopping with Fresh Dry Fruits.`;
+  await sendMail({ to, subject: `Order confirmed — #FDF-${order.orderNo}`, html, text });
+}
 
 // orderNo is random, so a fresh one can still land on an existing row; retry a
 // few times rather than failing a checkout that has already been paid for.
