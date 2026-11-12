@@ -8,16 +8,16 @@ Status legend: ✅ done · 🟡 in progress · ⬜ not started · 👤 needs you
 ## 🔴 Blockers — real orders can't happen safely until these are done
 
 - 👤 **Business + payments setup** — register the business, get GST + a current account, complete **Razorpay KYC**, then set live keys (`RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET`) in Render. Until then UPI/card record simulated `test-paid` orders (no money moves).
-- 🟡 **Legal pages** — Terms of Service, Privacy Policy, Return/Refund Policy, Shipping Policy. *Razorpay requires these to approve a live account.*
+- ✅ **Legal pages** — Terms, Privacy, Return/Refund, Shipping at `/legal/:doc` (linked in footer). *Review & tailor the text to your registered business.*
 - 👤 **Hosting upgrade** — move Render **web service + Postgres off the free tier** (free service sleeps ~20–50s; free DB expires ~90 days) and enable **automated DB backups**.
-- 🟡 **Inventory / stock** — track stock per product, prevent overselling, mark out-of-stock.
-- 🟡 **Order-confirmation email** to the customer + configure **SMTP** (also powers password-reset emails).
-- 👤 **GST invoice** — add the real GSTIN (invoice auto-switches to "TAX INVOICE") once registered.
+- ✅ **Inventory / stock** — stock tracked per product; checkout blocks overselling; storefront shows "Out of stock"; manage stock from the seller **Products** tab.
+- ✅ **Order-confirmation email** — sent on checkout (👤 set **SMTP** env vars to actually deliver; also powers password-reset emails).
+- 👤 **GST invoice** — add the real GSTIN in `web/src/pages/Seller.jsx` (`STORE.gstin`); the invoice auto-switches to "TAX INVOICE".
 
 ## 🟡 Important — do shortly before/after launch
 
-- 🟡 **Security hardening** — rate-limit auth endpoints, security headers (helmet), tighten CORS.
-- 🟡 **Admin product management** — add/edit/stock products from the seller dashboard (today the catalogue is code-seeded).
+- ✅ **Security hardening** — helmet headers + trust proxy; auth endpoints rate-limited (20/15 min/IP). (CORS still permissive — tighten to your domain later.)
+- ✅ **Admin product management** — add / edit price / set stock / delete from the seller **Products** tab.
 - ⬜ **Email verification** on signup.
 - ⬜ Replace **demo content** — store address/email, testimonials, reviews, product photos.
 - ⬜ **Shipping/logistics** — courier integration + customer-facing tracking.
