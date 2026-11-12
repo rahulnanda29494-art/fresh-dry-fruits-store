@@ -143,28 +143,36 @@ async function sendOrderConfirmation(to, order, address) {
 async function createOrderRow({ priced, address, paymentMethod, paymentStatus, razorpayOrderId, razorpayPaymentId, user, guestEmail }) {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     try {
-      return await prisma.order.create({
-        data: {
-          orderNo: generateOrderNo(),
-          publicToken: generatePublicToken(),
-          userId: user?.sub || null,
-          guestEmail: user ? null : (guestEmail || null),
-          guestName: user ? null : address.fullName,
-          shippingAddress: address,
-          paymentMethod,
-          paymentStatus,
-          razorpayOrderId: paymentStatus === 'paid' ? razorpayOrderId : null,
-          razorpayPaymentId: paymentStatus === 'paid' ? razorpayPaymentId : null,
-          couponCode: priced.couponCode,
-          subtotal: priced.subtotal,
-          discount: priced.discount,
-          shipping: priced.shipping,
-          total: priced.total,
-          items: {
-            create: priced.lines.map((l) => ({ productId: l.product.id, qty: l.qty, unitPrice: l.product.price })),
+      // Create the order and decrement product stock in one transaction so the
+      // two can't drift apart.
+      return await prisma.$transaction(async (tx) => {
+        const created = await tx.order.create({
+          data: {
+            orderNo: generateOrderNo(),
+            publicToken: generatePublicToken(),
+            userId: user?.sub || null,
+            guestEmail: user ? null : (guestEmail || null),
+            guestName: user ? null : address.fullName,
+            shippingAddress: address,
+            paymentMethod,
+            paymentStatus,
+            razorpayOrderId: paymentStatus === 'paid' ? razorpayOrderId : null,
+            razorpayPaymentId: paymentStatus === 'paid' ? razorpayPaymentId : null,
+            couponCode: priced.couponCode,
+            subtotal: priced.subtotal,
+            discount: priced.discount,
+            shipping: priced.shipping,
+            total: priced.total,
+            items: {
+              create: priced.lines.map((l) => ({ productId: l.product.id, qty: l.qty, unitPrice: l.product.price })),
+            },
           },
-        },
-        include: { items: { include: { product: true } } },
+          include: { items: { include: { product: true } } },
+        });
+        for (const l of priced.lines) {
+          await tx.product.update({ where: { id: l.product.id }, data: { stock: { decrement: l.qty } } });
+        }
+        return created;
       });
     } catch (err) {
       const collided = err.code === 'P2002' && [].concat(err.meta?.target || []).includes('orderNo');

@@ -40,9 +40,24 @@ const PRODUCTS = [
     nutrition: { Energy: '607 kcal', Protein: '19 g', Fat: '54 g', Fibre: '8 g', Carbs: '20 g' } },
 ];
 
+// Initial stock, applied only when a product is first created — re-running the
+// seed (e.g. on every deploy) preserves live stock levels for existing products.
+const INITIAL_STOCK = { almonds: 120, cashews: 80, pistachios: 60, walnuts: 90, dates: 150, raisins: 200, figs: 70, apricots: 50, mixed: 100 };
+
 async function main() {
   for (const p of PRODUCTS) {
-    await prisma.product.upsert({ where: { slug: p.slug }, update: p, create: p });
+    const initial = INITIAL_STOCK[p.slug] ?? 100;
+    const existing = await prisma.product.findUnique({ where: { slug: p.slug } });
+    if (!existing) {
+      await prisma.product.create({ data: { ...p, stock: initial } });
+    } else {
+      // Refresh product content; set stock only when it's still 0 (newly
+      // migrated or uninitialised) so live/decremented stock is preserved.
+      await prisma.product.update({
+        where: { slug: p.slug },
+        data: { ...p, ...(existing.stock === 0 ? { stock: initial } : {}) },
+      });
+    }
   }
   console.log(`Seeded ${PRODUCTS.length} products.`);
 }

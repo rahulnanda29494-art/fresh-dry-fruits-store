@@ -18,6 +18,8 @@ async function priceCart(prisma, items, couponCode) {
     const product = bySlug.get(i.productSlug);
     if (!product) throw new Error(`Unknown product: ${i.productSlug}`);
     const qty = Math.max(1, Math.min(99, Math.floor(Number(i.qty) || 1)));
+    if (product.stock <= 0) throw new Error(`${product.name} is out of stock`);
+    if (qty > product.stock) throw new Error(`Only ${product.stock} of ${product.name} left in stock`);
     return { product, qty, lineTotal: product.price * qty };
   });
 

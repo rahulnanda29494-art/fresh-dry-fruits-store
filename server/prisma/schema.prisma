@@ -36,6 +36,7 @@ model Product {
   nutrition   Json
   image       String
   bestSeller  Boolean  @default(false)
+  stock       Int      @default(0)
   createdAt   DateTime @default(now())
   orderItems  OrderItem[]
 }

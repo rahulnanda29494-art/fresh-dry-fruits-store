@@ -22,6 +22,8 @@ function serialize(p) {
     nutrition: p.nutrition,
     image: p.image || '',
     bestSeller: p.bestSeller,
+    stock: p.stock,
+    inStock: p.stock > 0,
   };
 }
 
