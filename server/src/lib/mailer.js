@@ -27,4 +27,10 @@ async function sendMail({ to, subject, html, text }) {
   return true;
 }
 
-module.exports = { emailEnabled, sendMail };
+// Base URL for links inside emails (APP_URL, else the live site).
+const APP_URL = (process.env.APP_URL || 'https://fresh-dry-fruits.onrender.com').replace(/\/$/, '');
+function trackUrl(orderNo, email) {
+  return `${APP_URL}/track?order=FDF-${encodeURIComponent(orderNo)}&email=${encodeURIComponent(email)}`;
+}
+
+module.exports = { emailEnabled, sendMail, trackUrl };

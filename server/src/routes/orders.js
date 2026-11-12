@@ -5,7 +5,7 @@ const prisma = require('../lib/prisma');
 const { razorpay, keySecret } = require('../lib/razorpay');
 const { priceCart, generateOrderNo, generatePublicToken } = require('../lib/pricing');
 const { attachUser, requireUser } = require('../middleware/auth');
-const { sendMail } = require('../lib/mailer');
+const { sendMail, trackUrl } = require('../lib/mailer');
 const asyncHandler = require('../lib/asyncHandler');
 
 const router = express.Router();
@@ -132,9 +132,10 @@ async function sendOrderConfirmation(to, order, address) {
       <tr><td style="padding:8px 0;font-weight:bold;border-top:2px solid #6A4E2F">Total</td><td style="text-align:right;font-weight:bold;border-top:2px solid #6A4E2F">${inr(order.total)}</td></tr>
     </table>
     <p style="font-size:13px;color:#6c5c47;margin-top:16px">Payment: ${esc(payLine)}<br>Delivering to: ${esc([address.line1, address.city, address.pin].filter(Boolean).join(', '))}</p>
-    <p style="font-size:12px;color:#a08a63;margin-top:22px;border-top:1px dashed #ddd;padding-top:12px">Questions? Just reply to this email. Thank you for shopping with Fresh Dry Fruits.</p>
+    <p style="text-align:center;margin:22px 0"><a href="${trackUrl(order.orderNo, to)}" style="background:#6A4E2F;color:#fff;text-decoration:none;font-weight:bold;padding:12px 28px;border-radius:100px;display:inline-block">Track your order</a></p>
+    <p style="font-size:12px;color:#a08a63;margin-top:12px;border-top:1px dashed #ddd;padding-top:12px">Questions? Just reply to this email. Thank you for shopping with Fresh Dry Fruits.</p>
   </div>`;
-  const text = `Order confirmed — #FDF-${order.orderNo}\n\n${order.items.map((i) => `${i.qty} x ${i.name} — ${inr(i.unitPrice * i.qty)}`).join('\n')}\n\nTotal: ${inr(order.total)}\nPayment: ${payLine}\n\nThank you for shopping with Fresh Dry Fruits.`;
+  const text = `Order confirmed — #FDF-${order.orderNo}\n\n${order.items.map((i) => `${i.qty} x ${i.name} — ${inr(i.unitPrice * i.qty)}`).join('\n')}\n\nTotal: ${inr(order.total)}\nPayment: ${payLine}\n\nTrack your order: ${trackUrl(order.orderNo, to)}\n\nThank you for shopping with Fresh Dry Fruits.`;
   await sendMail({ to, subject: `Order confirmed — #FDF-${order.orderNo}`, html, text });
 }
 
