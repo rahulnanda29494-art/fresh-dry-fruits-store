@@ -38,7 +38,7 @@ export default function Footer() {
         </div>
         <div>
           <h4 style={headingStyle}>SUPPORT</h4>
-          <a href="#" onClick={(e) => { e.preventDefault(); navigate('/orders'); }} style={linkStyle}>Track Order</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navigate('/track'); }} style={linkStyle}>Track Order</a>
           <a href="#" onClick={(e) => { e.preventDefault(); navigate('/legal/shipping'); }} style={linkStyle}>Shipping Policy</a>
           <a href="#" onClick={(e) => { e.preventDefault(); navigate('/legal/refund'); }} style={linkStyle}>Returns & Refunds</a>
           <a href="https://wa.me/919315223605" target="_blank" rel="noreferrer" style={linkStyle}>WhatsApp Us</a>

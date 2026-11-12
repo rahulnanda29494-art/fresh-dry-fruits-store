@@ -207,6 +207,27 @@ router.get('/by-token/:token', asyncHandler(async (req, res) => {
   res.json(serializeOrder(order));
 }));
 
+// Public order tracking: requires BOTH the order number and the matching email
+// (account or guest), so it can't be used to enumerate orders. No login needed.
+const trackSchema = z.object({
+  orderNo: z.string().trim().min(1).max(40),
+  email: z.string().trim().toLowerCase().email(),
+});
+router.post('/track', asyncHandler(async (req, res) => {
+  const parsed = trackSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'Enter a valid order number and email.' });
+  const orderNo = parsed.data.orderNo.replace(/[#\s]/g, '').replace(/^FDF-?/i, '');
+  const order = await prisma.order.findUnique({
+    where: { orderNo },
+    include: { items: { include: { product: true } }, user: true },
+  });
+  const orderEmail = order ? (order.user ? order.user.email : order.guestEmail) : null;
+  if (!order || !orderEmail || orderEmail.toLowerCase() !== parsed.data.email) {
+    return res.status(404).json({ error: 'No order found for that order number and email.' });
+  }
+  res.json(serializeOrder(order));
+}));
+
 // Order-number lookup is for account holders only, and only for their own
 // orders. Someone else's order number returns 404 rather than 403 so this
 // can't be used to probe which numbers exist.

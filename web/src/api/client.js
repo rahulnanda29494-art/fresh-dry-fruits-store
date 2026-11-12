@@ -33,6 +33,7 @@ export const api = {
   createRazorpayOrder: (payload, token) => request('/checkout/create-razorpay-order', { method: 'POST', body: payload, token }),
   createOrder: (payload, token) => request('/orders', { method: 'POST', body: payload, token }),
   getMyOrders: (token) => request('/orders', { token }),
+  trackOrder: (payload) => request('/orders/track', { method: 'POST', body: payload }),
   getAdminOrders: (token) => request('/admin/orders', { token }),
   updateOrderStatus: (orderNo, status, token) => request(`/admin/orders/${orderNo}/status`, { method: 'PATCH', body: { status }, token }),
   getAdminProducts: (token) => request('/admin/products', { token }),

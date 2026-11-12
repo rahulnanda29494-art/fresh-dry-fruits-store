@@ -28,6 +28,7 @@ import Account from './pages/Account';
 import ResetPassword from './pages/ResetPassword';
 import Seller from './pages/Seller';
 import Legal from './pages/Legal';
+import Track from './pages/Track';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -58,6 +59,7 @@ function Shell() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/seller" element={<Seller />} />
           <Route path="/legal/:doc" element={<Legal />} />
+          <Route path="/track" element={<Track />} />
         </Routes>
       </main>
       <Footer />
