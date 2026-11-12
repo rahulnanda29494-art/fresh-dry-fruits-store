@@ -14,9 +14,10 @@ export default function ProductCard({ product: p }) {
   const disc = Math.round((1 - p.price / p.oldPrice) * 100);
   const hasDisc = disc > 0;
   const isWished = wishlist.has(p.id);
+  const soldOut = p.stock != null && p.stock <= 0;
 
   function onOpen() { navigate(`/product/${p.id}`); }
-  function onAdd(e) { e.stopPropagation(); cart.addToCart(p.id, 1); }
+  function onAdd(e) { e.stopPropagation(); if (soldOut) return; cart.addToCart(p.id, 1); }
   function onWish(e) { e.stopPropagation(); wishlist.toggle(p.id); }
   function onQuick(e) { e.stopPropagation(); quickView.open(p.id); }
 
@@ -30,8 +31,11 @@ export default function ProductCard({ product: p }) {
         transition: 'transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s',
       }}
     >
-      <div style={{ position: 'relative', aspectRatio: '1', background: '#F5EFE2', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', aspectRatio: '1', background: '#F5EFE2', overflow: 'hidden', opacity: soldOut ? 0.72 : 1 }}>
         <ProductImage imageKey={p.image} alt={p.name} label={p.name} />
+        {soldOut && (
+          <span style={{ position: 'absolute', top: 12, right: 12, background: '#1A1A1A', color: '#fff', fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 10, letterSpacing: '.08em', padding: '5px 10px', borderRadius: 100, zIndex: 2 }}>OUT OF STOCK</span>
+        )}
         <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', flexDirection: 'column', gap: 6, pointerEvents: 'none' }}>
           {hasDisc && (
             <span style={{ background: '#EA4335', color: '#fff', fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 11, padding: '4px 9px', borderRadius: 100 }}>
@@ -90,14 +94,15 @@ export default function ProductCard({ product: p }) {
           <button
             className="add-to-cart-btn"
             onClick={onAdd}
-            title="Add to cart"
+            disabled={soldOut}
+            title={soldOut ? 'Out of stock' : 'Add to cart'}
             style={{
-              width: 44, height: 44, borderRadius: '50%', background: '#6A4E2F', color: '#fff', border: 'none',
-              cursor: 'pointer', fontSize: 20, display: 'grid', placeItems: 'center',
+              width: 44, height: 44, borderRadius: '50%', background: soldOut ? '#c8bba2' : '#6A4E2F', color: '#fff', border: 'none',
+              cursor: soldOut ? 'not-allowed' : 'pointer', fontSize: 20, display: 'grid', placeItems: 'center',
               transition: 'transform .2s, background .2s',
             }}
           >
-            +
+            {soldOut ? '✕' : '+'}
           </button>
         </div>
       </div>

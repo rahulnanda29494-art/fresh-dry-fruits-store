@@ -366,8 +366,11 @@ export default function Seller() {
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
         {tabBtn('overview', 'Overview')}
         {tabBtn('orders', 'Orders')}
+        {tabBtn('products', 'Products')}
         {tabBtn('sales', 'Sales report')}
       </div>
+
+      {view === 'products' && <ProductsManager token={token} showToast={showToast} />}
 
       {view === 'overview' && analytics && (
         <div style={{ display: 'grid', gap: 22 }}>
@@ -499,5 +502,78 @@ export default function Seller() {
         </div>
       )}
     </>
+  );
+}
+
+// Admin product management: edit price/stock inline, add, and delete products.
+function ProductsManager({ token, showToast }) {
+  const [rows, setRows] = useState(null);
+  const [adding, setAdding] = useState({ name: '', category: '', price: '', stock: '', weight: '' });
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => { api.getAdminProducts(token).then(setRows).catch((e) => showToast(e.message)); }, [token]);
+
+  const setField = (id, f, v) => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, [f]: v } : r)));
+  async function save(r) {
+    setBusy(true);
+    try { await api.updateProduct(r.id, { name: r.name, price: Number(r.price), stock: Number(r.stock) }, token); showToast(`Saved ${r.name}`); }
+    catch (e) { showToast(e.message); } finally { setBusy(false); }
+  }
+  async function remove(r) {
+    if (!window.confirm(`Delete "${r.name}"?`)) return;
+    try { await api.deleteProduct(r.id, token); setRows((rs) => rs.filter((x) => x.id !== r.id)); showToast('Deleted'); }
+    catch (e) { showToast(e.message); }
+  }
+  async function add() {
+    if (!adding.name.trim() || !adding.category.trim() || adding.price === '') { showToast('Name, category and price are required'); return; }
+    setBusy(true);
+    try {
+      await api.createProduct({ name: adding.name, category: adding.category, price: Number(adding.price), stock: Number(adding.stock) || 0, weight: adding.weight }, token);
+      setRows(await api.getAdminProducts(token));
+      setAdding({ name: '', category: '', price: '', stock: '', weight: '' });
+      showToast('Product added');
+    } catch (e) { showToast(e.message); } finally { setBusy(false); }
+  }
+
+  if (!rows) return <div style={{ ...card, padding: 36, textAlign: 'center', color: '#8a7a63' }}>Loading products…</div>;
+  const inp = { fontFamily: "'Poppins',sans-serif", fontSize: 13, padding: '7px 9px', borderRadius: 8, border: '1px solid rgba(106,78,47,.2)', outline: 'none' };
+
+  return (
+    <div style={{ display: 'grid', gap: 18 }}>
+      <div style={{ ...card, padding: '16px 18px' }}>
+        <h3 style={{ ...cardHead, marginBottom: 12 }}>Add product</h3>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input placeholder="Name" value={adding.name} onChange={(e) => setAdding({ ...adding, name: e.target.value })} style={{ ...inp, flex: '2 1 160px' }} />
+          <input placeholder="Category" value={adding.category} onChange={(e) => setAdding({ ...adding, category: e.target.value })} style={{ ...inp, flex: '1 1 110px' }} />
+          <input placeholder="Price ₹" type="number" value={adding.price} onChange={(e) => setAdding({ ...adding, price: e.target.value })} style={{ ...inp, width: 90 }} />
+          <input placeholder="Stock" type="number" value={adding.stock} onChange={(e) => setAdding({ ...adding, stock: e.target.value })} style={{ ...inp, width: 80 }} />
+          <input placeholder="Weight" value={adding.weight} onChange={(e) => setAdding({ ...adding, weight: e.target.value })} style={{ ...inp, width: 90 }} />
+          <button onClick={add} disabled={busy} style={{ fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 12.5, padding: '9px 18px', borderRadius: 100, cursor: 'pointer', border: 'none', background: '#6A4E2F', color: '#fff' }}>+ Add</button>
+        </div>
+      </div>
+      <div style={{ ...card, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: "'Poppins',sans-serif", fontSize: 13, minWidth: 720 }}>
+            <thead><tr style={{ background: '#F5EFE2', color: '#6A4E2F', fontFamily: 'Montserrat,sans-serif', fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase' }}>
+              <th style={{ textAlign: 'left', padding: '12px 14px' }}>Product</th><th style={{ textAlign: 'left', padding: '12px 14px' }}>Category</th><th style={{ textAlign: 'right', padding: '12px 14px' }}>Price ₹</th><th style={{ textAlign: 'right', padding: '12px 14px' }}>Stock</th><th style={{ padding: '12px 14px' }} />
+            </tr></thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} style={{ borderTop: '1px solid rgba(106,78,47,.08)', background: Number(r.stock) <= 0 ? '#FBE9E7' : 'transparent' }}>
+                  <td style={{ padding: '10px 14px' }}><input value={r.name} onChange={(e) => setField(r.id, 'name', e.target.value)} style={{ ...inp, width: 180 }} /></td>
+                  <td style={{ padding: '10px 14px', color: '#6c5c47' }}>{r.category}</td>
+                  <td style={{ padding: '10px 14px', textAlign: 'right' }}><input type="number" value={r.price} onChange={(e) => setField(r.id, 'price', e.target.value)} style={{ ...inp, width: 90, textAlign: 'right' }} /></td>
+                  <td style={{ padding: '10px 14px', textAlign: 'right' }}><input type="number" value={r.stock} onChange={(e) => setField(r.id, 'stock', e.target.value)} style={{ ...inp, width: 80, textAlign: 'right', color: Number(r.stock) <= 0 ? '#A33A2A' : '#2a1f12', fontWeight: 700 }} /></td>
+                  <td style={{ padding: '10px 14px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <button onClick={() => save(r)} disabled={busy} style={{ fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 11.5, padding: '7px 13px', borderRadius: 100, cursor: 'pointer', border: 'none', background: '#6A4E2F', color: '#fff', marginRight: 6 }}>Save</button>
+                    <button onClick={() => remove(r)} title="Delete" style={{ fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 11.5, padding: '7px 11px', borderRadius: 100, cursor: 'pointer', border: '1.5px solid rgba(234,67,53,.4)', background: '#fff', color: '#EA4335' }}>✕</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
 }
