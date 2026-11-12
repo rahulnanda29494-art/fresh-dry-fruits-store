@@ -2,6 +2,7 @@ const express = require('express');
 const { z } = require('zod');
 const prisma = require('../lib/prisma');
 const { attachUser, requireAdmin } = require('../middleware/auth');
+const { sendMail } = require('../lib/mailer');
 const asyncHandler = require('../lib/asyncHandler');
 
 const router = express.Router();
@@ -108,9 +109,42 @@ router.patch('/orders/:orderNo/status', attachUser, requireAdmin, asyncHandler(a
   const order = await prisma.order.update({
     where: { orderNo: req.params.orderNo },
     data: { status },
+    include: { user: true, items: { include: { product: true } } },
   });
+
+  // Notify the customer when an order is shipped or delivered.
+  if (status === 'shipped' || status === 'delivered') {
+    const to = order.user ? order.user.email : order.guestEmail;
+    if (to) sendStatusEmail(to, order, status).catch((e) => console.error('[status-email]', e.message));
+  }
+
   res.json({ orderNo: order.orderNo, status: order.status });
 }));
+
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function sendStatusEmail(to, order, status) {
+  const addr = order.shippingAddress || {};
+  const name = order.user ? order.user.name : (order.guestName || addr.fullName || 'there');
+  const items = order.items.map((i) => `${i.qty} × ${i.product.name}`).join(', ');
+  const copy = status === 'shipped'
+    ? { emoji: '📦', head: 'Your order is on its way!', line: 'Good news — your order has been shipped and is heading to you. It typically arrives within 2–7 business days.' }
+    : { emoji: '✅', head: 'Your order has been delivered', line: 'Your order has been marked as delivered. We hope you love it! If anything isn’t right, just reply to this email.' };
+  const html = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#2a1f12">
+    <h2 style="color:#6A4E2F;margin:0 0 4px">Fresh Dry Fruits</h2>
+    <p style="color:#8a7a63;margin:0 0 18px;font-size:13px">${copy.emoji} Order update</p>
+    <p>Hi ${escHtml(name)},</p>
+    <p style="font-size:16px;font-weight:bold;margin:6px 0">${copy.head}</p>
+    <p>${copy.line}</p>
+    <p style="font-size:14px;margin-top:14px"><b>Order #FDF-${escHtml(order.orderNo)}</b><br><span style="color:#6c5c47">${escHtml(items)}</span></p>
+    <p style="font-size:13px;color:#6c5c47">Delivering to: ${escHtml([addr.line1, addr.city, addr.pin].filter(Boolean).join(', '))}</p>
+    <p style="font-size:12px;color:#a08a63;margin-top:22px;border-top:1px dashed #ddd;padding-top:12px">Thank you for shopping with Fresh Dry Fruits 🌰</p>
+  </div>`;
+  const text = `${copy.head}\n\n${copy.line}\n\nOrder #FDF-${order.orderNo}: ${items}\n\nThank you for shopping with Fresh Dry Fruits.`;
+  await sendMail({ to, subject: `${copy.emoji} Order #FDF-${order.orderNo} ${status === 'shipped' ? 'shipped' : 'delivered'}`, html, text });
+}
 
 function serializeAdminOrder(o) {
   const addr = o.shippingAddress || {};
