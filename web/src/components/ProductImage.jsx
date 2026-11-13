@@ -4,8 +4,12 @@ const stripes = {
   backgroundImage: 'repeating-linear-gradient(135deg, #F0EADF, #F0EADF 10px, #F5EFE2 10px, #F5EFE2 20px)',
 };
 
+// Uploaded images are stored as data URIs / URLs / absolute paths; bundled
+// catalogue images are short keys resolved through imageMap.
+const DIRECT_SRC = /^(data:|https?:|\/)/i;
+
 export default function ProductImage({ imageKey, alt, label, style, fit = 'cover' }) {
-  const src = resolveImage(imageKey);
+  const src = imageKey && DIRECT_SRC.test(imageKey) ? imageKey : resolveImage(imageKey);
   if (!src) {
     return (
       <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', ...stripes, ...style }}>

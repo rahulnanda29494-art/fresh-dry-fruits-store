@@ -4,6 +4,32 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { api } from '../api/client';
 import { money } from '../utils/format';
+import ProductImage from '../components/ProductImage';
+
+// Read an image file, downscale it to <= 700px and JPEG-compress, returning a
+// compact data URI — small enough to store on the product and persist in the DB.
+function fileToResizedDataUrl(file, max = 700) {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) return reject(new Error('Please choose an image file'));
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Invalid image'));
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > max) { height = Math.round((height * max) / width); width = max; }
+        else if (height >= width && height > max) { width = Math.round((width * max) / height); height = max; }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 const METHOD_LABEL = { card: 'Card', upi: 'UPI', cod: 'COD' };
 const PAY_STATUS = {
@@ -514,6 +540,15 @@ function ProductsManager({ token, showToast }) {
   useEffect(() => { api.getAdminProducts(token).then(setRows).catch((e) => showToast(e.message)); }, [token]);
 
   const setField = (id, f, v) => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, [f]: v } : r)));
+  async function uploadImage(r, file) {
+    if (!file) return;
+    try {
+      const dataUrl = await fileToResizedDataUrl(file);
+      await api.updateProduct(r.id, { image: dataUrl }, token);
+      setField(r.id, 'image', dataUrl);
+      showToast(`Image updated for ${r.name}`);
+    } catch (e) { showToast(e.message || 'Image upload failed'); }
+  }
   async function save(r) {
     setBusy(true);
     try { await api.updateProduct(r.id, { name: r.name, price: Number(r.price), stock: Number(r.stock) }, token); showToast(`Saved ${r.name}`); }
@@ -555,11 +590,17 @@ function ProductsManager({ token, showToast }) {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: "'Poppins',sans-serif", fontSize: 13, minWidth: 720 }}>
             <thead><tr style={{ background: '#F5EFE2', color: '#6A4E2F', fontFamily: 'Montserrat,sans-serif', fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase' }}>
-              <th style={{ textAlign: 'left', padding: '12px 14px' }}>Product</th><th style={{ textAlign: 'left', padding: '12px 14px' }}>Category</th><th style={{ textAlign: 'right', padding: '12px 14px' }}>Price ₹</th><th style={{ textAlign: 'right', padding: '12px 14px' }}>Stock</th><th style={{ padding: '12px 14px' }} />
+              <th style={{ padding: '12px 14px' }}>Image</th><th style={{ textAlign: 'left', padding: '12px 14px' }}>Product</th><th style={{ textAlign: 'left', padding: '12px 14px' }}>Category</th><th style={{ textAlign: 'right', padding: '12px 14px' }}>Price ₹</th><th style={{ textAlign: 'right', padding: '12px 14px' }}>Stock</th><th style={{ padding: '12px 14px' }} />
             </tr></thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} style={{ borderTop: '1px solid rgba(106,78,47,.08)', background: Number(r.stock) <= 0 ? '#FBE9E7' : 'transparent' }}>
+                  <td style={{ padding: '10px 14px' }}>
+                    <label title="Upload image" style={{ cursor: 'pointer', display: 'block', width: 48, height: 48, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(106,78,47,.18)', position: 'relative' }}>
+                      <ProductImage imageKey={r.image} alt={r.name} label="+" />
+                      <input type="file" accept="image/*" onChange={(e) => { uploadImage(r, e.target.files[0]); e.target.value = ''; }} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+                    </label>
+                  </td>
                   <td style={{ padding: '10px 14px' }}><input value={r.name} onChange={(e) => setField(r.id, 'name', e.target.value)} style={{ ...inp, width: 180 }} /></td>
                   <td style={{ padding: '10px 14px', color: '#6c5c47' }}>{r.category}</td>
                   <td style={{ padding: '10px 14px', textAlign: 'right' }}><input type="number" value={r.price} onChange={(e) => setField(r.id, 'price', e.target.value)} style={{ ...inp, width: 90, textAlign: 'right' }} /></td>

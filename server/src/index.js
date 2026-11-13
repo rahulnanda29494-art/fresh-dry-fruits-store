@@ -19,7 +19,8 @@ app.set('trust proxy', 1);
 // and loads Razorpay Checkout + Google Fonts from other origins.
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(cors());
-app.use(express.json());
+// Larger limit so admin product-image uploads (base64 data URIs) fit.
+app.use(express.json({ limit: '8mb' }));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/products', productsRouter);

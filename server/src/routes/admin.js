@@ -23,7 +23,8 @@ const productCreateSchema = z.object({
   origin: z.string().trim().max(120).optional(),
   blurb: z.string().trim().max(600).optional(),
   badge: z.string().trim().max(40).optional(),
-  image: z.string().trim().max(120).optional(),
+  // Accepts a short asset key, a URL/path, or an uploaded image data URI.
+  image: z.string().max(6_000_000).optional(),
   organic: z.boolean().optional(),
   bestSeller: z.boolean().optional(),
   benefits: z.array(z.string()).optional(),
