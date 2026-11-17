@@ -2,7 +2,7 @@ const express = require('express');
 const { z } = require('zod');
 const prisma = require('../lib/prisma');
 const { attachUser, requireAdmin } = require('../middleware/auth');
-const { sendMail, trackUrl, emailEnabled, invalidate } = require('../lib/mailer');
+const { sendMail, testSend, trackUrl, emailEnabled, invalidate } = require('../lib/mailer');
 const asyncHandler = require('../lib/asyncHandler');
 
 const router = express.Router();
@@ -44,7 +44,7 @@ router.post('/email-config/test', attachUser, requireAdmin, asyncHandler(async (
   if (!(await emailEnabled())) return res.status(400).json({ error: 'Email isn’t fully configured. Enter host, email address and password, Save, then test.' });
   const to = (req.body && req.body.to) || req.user.email;
   try {
-    await sendMail({
+    await testSend({
       to,
       subject: 'Fresh Dry Fruits — test email ✅',
       html: '<div style="font-family:Arial,sans-serif"><h2 style="color:#6A4E2F">It works! 🌰</h2><p>Your store email is configured correctly. Customers will now receive order confirmations and shipping updates.</p></div>',
@@ -52,7 +52,8 @@ router.post('/email-config/test', attachUser, requireAdmin, asyncHandler(async (
     });
     res.json({ ok: true, to });
   } catch (e) {
-    res.status(400).json({ error: 'Send failed — check the address and password. (' + e.message + ')' });
+    // Surface the real SMTP error (bad password, wrong host/port, blocked login…).
+    res.status(400).json({ error: 'Send failed: ' + (e.message || 'check the email address, password, host and port.') });
   }
 }));
 

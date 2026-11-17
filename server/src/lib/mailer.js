@@ -42,11 +42,15 @@ async function sendMail({ to, subject, html, text }) {
   return true;
 }
 
-// Sends through the given ad-hoc config (used by the dashboard "send test"
-// button to validate settings before they're relied on).
-async function sendWith(cfg, { to, subject, html, text }) {
-  const t = nodemailer.createTransport({ host: cfg.host, port: Number(cfg.port) || 465, secure: Number(cfg.port) !== 587, auth: { user: cfg.user, pass: cfg.pass } });
-  await t.sendMail({ from: cfg.fromName ? `${cfg.fromName} <${cfg.user}>` : cfg.user, to, subject, html, text });
+// Verifies the SMTP login actually works, then sends — used by the dashboard
+// "send test" button so it reports the TRUE result (a bad password/host fails
+// here instead of silently reporting success).
+async function testSend({ to, subject, html, text }) {
+  const { transport, from } = await build();
+  if (!transport) throw new Error('Email is not fully configured.');
+  await transport.verify();
+  const info = await transport.sendMail({ from, to, subject, html, text });
+  return info;
 }
 
 async function emailEnabled() {
@@ -59,4 +63,4 @@ function trackUrl(orderNo, email) {
   return `${APP_URL}/track?order=FDF-${encodeURIComponent(orderNo)}&email=${encodeURIComponent(email)}`;
 }
 
-module.exports = { emailEnabled, sendMail, sendWith, invalidate, trackUrl };
+module.exports = { emailEnabled, sendMail, testSend, invalidate, trackUrl };
