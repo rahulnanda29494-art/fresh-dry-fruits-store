@@ -2,10 +2,59 @@ const express = require('express');
 const { z } = require('zod');
 const prisma = require('../lib/prisma');
 const { attachUser, requireAdmin } = require('../middleware/auth');
-const { sendMail, trackUrl } = require('../lib/mailer');
+const { sendMail, trackUrl, emailEnabled, invalidate } = require('../lib/mailer');
 const asyncHandler = require('../lib/asyncHandler');
 
 const router = express.Router();
+
+// ---- Store email (SMTP) settings, editable from the dashboard -----------
+const emailConfigSchema = z.object({
+  host: z.string().trim().max(200).optional(),
+  port: z.coerce.number().int().min(1).max(65535).optional(),
+  user: z.string().trim().max(200).optional(),
+  pass: z.string().max(400).optional(),
+  fromName: z.string().trim().max(120).optional(),
+});
+
+router.get('/email-config', attachUser, requireAdmin, asyncHandler(async (_req, res) => {
+  const s = await prisma.emailSettings.findUnique({ where: { id: 1 } });
+  res.json({
+    host: s?.host || '',
+    port: s?.port || 465,
+    user: s?.user || '',
+    fromName: s?.fromName || 'Fresh Dry Fruits',
+    hasPassword: Boolean(s?.pass),
+    enabled: await emailEnabled(),
+  });
+}));
+
+router.put('/email-config', attachUser, requireAdmin, asyncHandler(async (req, res) => {
+  const parsed = emailConfigSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0].message });
+  const d = parsed.data;
+  const data = { host: d.host || null, port: d.port || 465, user: d.user || null, fromName: d.fromName || null };
+  if (d.pass) data.pass = d.pass; // only overwrite the password when a new one is entered
+  await prisma.emailSettings.upsert({ where: { id: 1 }, update: data, create: { id: 1, ...data } });
+  invalidate();
+  res.json({ ok: true, enabled: await emailEnabled() });
+}));
+
+router.post('/email-config/test', attachUser, requireAdmin, asyncHandler(async (req, res) => {
+  invalidate();
+  if (!(await emailEnabled())) return res.status(400).json({ error: 'Email isn’t fully configured. Enter host, email address and password, Save, then test.' });
+  const to = (req.body && req.body.to) || req.user.email;
+  try {
+    await sendMail({
+      to,
+      subject: 'Fresh Dry Fruits — test email ✅',
+      html: '<div style="font-family:Arial,sans-serif"><h2 style="color:#6A4E2F">It works! 🌰</h2><p>Your store email is configured correctly. Customers will now receive order confirmations and shipping updates.</p></div>',
+      text: 'Your store email is configured correctly. Customers will now receive order confirmations and shipping updates.',
+    });
+    res.json({ ok: true, to });
+  } catch (e) {
+    res.status(400).json({ error: 'Send failed — check the address and password. (' + e.message + ')' });
+  }
+}));
 
 // ---- Product management (admin-only) ------------------------------------
 function slugify(s) {

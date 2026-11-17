@@ -1,30 +1,56 @@
 const nodemailer = require('nodemailer');
+const prisma = require('./prisma');
 
-// Configured entirely from env. Set SMTP_HOST/PORT/USER/PASS (and optionally
-// MAIL_FROM) to send real email — e.g. Gmail: host smtp.gmail.com, port 465,
-// user your address, pass a Google "App Password". Without these, emailEnabled
-// is false and callers fall back to showing the reset link directly (dev only).
-const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM } = process.env;
+// Email settings come from the DB (editable in the seller dashboard), falling
+// back to env vars (SMTP_HOST/PORT/USER/PASS/MAIL_FROM). Resolved per-send and
+// cached briefly so dashboard changes take effect within ~15s.
+let cache = { at: 0, transport: null, from: null, enabled: false };
+const TTL = 15 * 1000;
 
-const emailEnabled = Boolean(SMTP_HOST && SMTP_USER && SMTP_PASS);
-
-const transport = emailEnabled
-  ? nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: Number(SMTP_PORT) || 465,
-      secure: Number(SMTP_PORT) !== 587, // 465 = implicit TLS, 587 = STARTTLS
-      auth: { user: SMTP_USER, pass: SMTP_PASS },
-    })
-  : null;
-
-if (!emailEnabled) {
-  console.warn('[mailer] SMTP not configured — password-reset emails will not be sent (reset links are shown on-screen in dev instead). Set SMTP_HOST/SMTP_USER/SMTP_PASS to enable.');
+async function resolveConfig() {
+  let s = null;
+  try { s = await prisma.emailSettings.findUnique({ where: { id: 1 } }); } catch { /* table may not exist yet */ }
+  const host = (s && s.host) || process.env.SMTP_HOST || null;
+  const user = (s && s.user) || process.env.SMTP_USER || null;
+  const pass = (s && s.pass) || process.env.SMTP_PASS || null;
+  const port = Number((s && s.port) || process.env.SMTP_PORT || 465);
+  const fromName = (s && s.fromName) || 'Fresh Dry Fruits';
+  const fromEmail = user || process.env.MAIL_FROM || null;
+  if (!host || !user || !pass || !fromEmail) return null;
+  return { host, port, user, pass, from: fromName ? `${fromName} <${fromEmail}>` : fromEmail };
 }
 
+async function build() {
+  if (Date.now() - cache.at < TTL) return cache;
+  const cfg = await resolveConfig();
+  cache = {
+    at: Date.now(),
+    transport: cfg ? nodemailer.createTransport({ host: cfg.host, port: cfg.port, secure: cfg.port !== 587, auth: { user: cfg.user, pass: cfg.pass } }) : null,
+    from: cfg ? cfg.from : null,
+    enabled: Boolean(cfg),
+  };
+  return cache;
+}
+
+// Call after saving settings so the next send picks them up immediately.
+function invalidate() { cache.at = 0; }
+
 async function sendMail({ to, subject, html, text }) {
+  const { transport, from } = await build();
   if (!transport) return false;
-  await transport.sendMail({ from: MAIL_FROM || SMTP_USER, to, subject, html, text });
+  await transport.sendMail({ from, to, subject, html, text });
   return true;
+}
+
+// Sends through the given ad-hoc config (used by the dashboard "send test"
+// button to validate settings before they're relied on).
+async function sendWith(cfg, { to, subject, html, text }) {
+  const t = nodemailer.createTransport({ host: cfg.host, port: Number(cfg.port) || 465, secure: Number(cfg.port) !== 587, auth: { user: cfg.user, pass: cfg.pass } });
+  await t.sendMail({ from: cfg.fromName ? `${cfg.fromName} <${cfg.user}>` : cfg.user, to, subject, html, text });
+}
+
+async function emailEnabled() {
+  return (await build()).enabled;
 }
 
 // Base URL for links inside emails (APP_URL, else the live site).
@@ -33,4 +59,4 @@ function trackUrl(orderNo, email) {
   return `${APP_URL}/track?order=FDF-${encodeURIComponent(orderNo)}&email=${encodeURIComponent(email)}`;
 }
 
-module.exports = { emailEnabled, sendMail, trackUrl };
+module.exports = { emailEnabled, sendMail, sendWith, invalidate, trackUrl };

@@ -394,9 +394,11 @@ export default function Seller() {
         {tabBtn('orders', 'Orders')}
         {tabBtn('products', 'Products')}
         {tabBtn('sales', 'Sales report')}
+        {tabBtn('settings', 'Settings')}
       </div>
 
       {view === 'products' && <ProductsManager token={token} showToast={showToast} />}
+      {view === 'settings' && <EmailSettings token={token} showToast={showToast} />}
 
       {view === 'overview' && analytics && (
         <div style={{ display: 'grid', gap: 22 }}>
@@ -615,6 +617,75 @@ function ProductsManager({ token, showToast }) {
           </table>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Store email (SMTP) configuration — edit from the dashboard so order emails
+// send from the seller's own address.
+function EmailSettings({ token, showToast }) {
+  const [cfg, setCfg] = useState(null);
+  const [pass, setPass] = useState('');
+  const [testTo, setTestTo] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => { api.getEmailConfig(token).then(setCfg).catch((e) => showToast(e.message)); }, [token]);
+  if (!cfg) return <div style={{ ...card, padding: 36, textAlign: 'center', color: '#8a7a63' }}>Loading…</div>;
+
+  const set = (f, v) => setCfg((c) => ({ ...c, [f]: v }));
+  const fld = { fontFamily: "'Poppins',sans-serif", fontSize: 13.5, padding: '12px 14px', borderRadius: 10, border: '1px solid rgba(106,78,47,.2)', outline: 'none', width: '100%' };
+  const lbl = { fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 10.5, letterSpacing: '.06em', color: '#8a7a63', textTransform: 'uppercase', marginBottom: 5, display: 'block' };
+  const btn = (primary) => ({ fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 13, padding: '11px 22px', borderRadius: 100, cursor: busy ? 'default' : 'pointer', border: primary ? 'none' : '1.5px solid #6A4E2F', background: primary ? '#6A4E2F' : '#fff', color: primary ? '#fff' : '#6A4E2F', opacity: busy ? 0.6 : 1 });
+
+  async function save() {
+    setBusy(true);
+    try {
+      const payload = { host: cfg.host, port: Number(cfg.port) || 465, user: cfg.user, fromName: cfg.fromName };
+      if (pass) payload.pass = pass;
+      const r = await api.saveEmailConfig(payload, token);
+      setCfg((c) => ({ ...c, hasPassword: c.hasPassword || Boolean(pass), enabled: r.enabled }));
+      setPass('');
+      showToast(r.enabled ? 'Saved — email is active ✅' : 'Saved (fill in all fields to activate)');
+    } catch (e) { showToast(e.message); } finally { setBusy(false); }
+  }
+  async function test() {
+    setBusy(true);
+    try { const r = await api.testEmailConfig({ to: testTo.trim() || undefined }, token); showToast('Test email sent to ' + r.to + ' ✅'); }
+    catch (e) { showToast(e.message); } finally { setBusy(false); }
+  }
+
+  return (
+    <div style={{ ...card, padding: 26, maxWidth: 620 }}>
+      <h3 style={{ ...cardHead, marginBottom: 6 }}>Store email</h3>
+      <p style={{ fontSize: 13, color: '#8a7a63', margin: '0 0 16px' }}>Order confirmations, shipping updates and password-reset emails are sent from this address.</p>
+
+      <div style={{ padding: '10px 14px', borderRadius: 10, marginBottom: 18, fontSize: 13, fontWeight: 600, background: cfg.enabled ? '#EAF3DC' : '#FFF6E3', color: cfg.enabled ? '#4a6b2a' : '#8a6d1f' }}>
+        {cfg.enabled ? '✅ Email is active — customers receive emails.' : '⚠️ Not active yet — fill in the details below and Save.'}
+      </div>
+
+      <div style={{ display: 'grid', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
+          <div><label style={lbl}>SMTP host</label><input value={cfg.host} onChange={(e) => set('host', e.target.value)} placeholder="smtp.gmail.com" style={fld} /></div>
+          <div><label style={lbl}>Port</label><input type="number" value={cfg.port} onChange={(e) => set('port', e.target.value)} placeholder="465" style={fld} /></div>
+        </div>
+        <div><label style={lbl}>Your email address (sends from)</label><input type="email" value={cfg.user} onChange={(e) => set('user', e.target.value)} placeholder="store@gmail.com" style={fld} /></div>
+        <div><label style={lbl}>Password / app password</label><input type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder={cfg.hasPassword ? '•••••••• (saved — leave blank to keep)' : 'App password'} style={fld} /></div>
+        <div><label style={lbl}>From name</label><input value={cfg.fromName} onChange={(e) => set('fromName', e.target.value)} placeholder="Fresh Dry Fruits" style={fld} /></div>
+        <div><button onClick={save} disabled={busy} style={btn(true)}>Save settings</button></div>
+      </div>
+
+      <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(106,78,47,.1)' }}>
+        <label style={lbl}>Send a test email</label>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <input type="email" value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="(defaults to your account email)" style={{ ...fld, flex: '1 1 220px' }} />
+          <button onClick={test} disabled={busy} style={btn(false)}>Send test</button>
+        </div>
+      </div>
+
+      <p style={{ fontSize: 12, color: '#a08a63', marginTop: 18, lineHeight: 1.6 }}>
+        <b>Gmail:</b> host <code>smtp.gmail.com</code>, port <code>465</code>, your Gmail address, and a 16-character
+        <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" style={{ color: '#6A4E2F' }}> App Password</a> (not your normal password; requires 2-Step Verification).
+      </p>
     </div>
   );
 }

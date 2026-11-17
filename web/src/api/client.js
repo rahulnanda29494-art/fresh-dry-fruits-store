@@ -40,6 +40,9 @@ export const api = {
   createProduct: (payload, token) => request('/admin/products', { method: 'POST', body: payload, token }),
   updateProduct: (id, payload, token) => request(`/admin/products/${id}`, { method: 'PATCH', body: payload, token }),
   deleteProduct: (id, token) => request(`/admin/products/${id}`, { method: 'DELETE', token }),
+  getEmailConfig: (token) => request('/admin/email-config', { token }),
+  saveEmailConfig: (payload, token) => request('/admin/email-config', { method: 'PUT', body: payload, token }),
+  testEmailConfig: (payload, token) => request('/admin/email-config/test', { method: 'POST', body: payload || {}, token }),
   // By order number: signed-in owner only. By token: the confirmation lookup,
   // which also works for guests — the token comes back from createOrder.
   getOrder: (orderNo, token) => request(`/orders/${orderNo}`, { token }),

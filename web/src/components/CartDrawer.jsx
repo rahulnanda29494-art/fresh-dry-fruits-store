@@ -28,6 +28,7 @@ export default function CartDrawer() {
   const navigate = useNavigate();
 
   const [address, setAddress] = useState({ fullName: '', phone: '', line1: '', city: '', pin: '' });
+  const [guestEmail, setGuestEmail] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('upi');
   const [gatewayLive, setGatewayLive] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -62,6 +63,10 @@ export default function CartDrawer() {
       setStepError('Please fill in all address fields.');
       return;
     }
+    if (!token && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) {
+      setStepError('Please enter a valid email for your order confirmation.');
+      return;
+    }
     cart.setCheckoutStep(2);
   }
 
@@ -79,6 +84,7 @@ export default function CartDrawer() {
         couponCode: cart.couponApplied ? cart.coupon : undefined,
         address,
         paymentMethod,
+        ...(token ? {} : { guestEmail: guestEmail.trim() }),
         ...payment,
       }, token);
       cart.completeOrder(order.orderNo);
@@ -250,6 +256,9 @@ export default function CartDrawer() {
                 <div style={{ fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 13, color: '#6A4E2F', letterSpacing: '.06em', marginBottom: 14 }}>SHIPPING ADDRESS</div>
                 <div style={{ display: 'grid', gap: 10 }}>
                   <input placeholder="Full name" value={address.fullName} onChange={(e) => setAddress({ ...address, fullName: e.target.value })} style={inputStyle} />
+                  {!token && (
+                    <input type="email" placeholder="Email (for order confirmation & tracking)" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} style={inputStyle} />
+                  )}
                   <input placeholder="Phone number" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} style={inputStyle} />
                   <input placeholder="Address line" value={address.line1} onChange={(e) => setAddress({ ...address, line1: e.target.value })} style={inputStyle} />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

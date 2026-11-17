@@ -137,7 +137,7 @@ router.post('/forgot-password', authLimiter, asyncHandler(async (req, res) => {
   const base = process.env.APP_URL || `${proto}://${req.get('host')}`;
   const resetUrl = `${base}/reset-password?token=${token}`;
 
-  if (emailEnabled) {
+  if (await emailEnabled()) {
     await sendMail({
       to: email,
       subject: 'Reset your Fresh Dry Fruits password',

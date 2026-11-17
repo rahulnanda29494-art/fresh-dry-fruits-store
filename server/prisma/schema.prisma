@@ -7,6 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Single-row store email (SMTP) settings, editable from the seller dashboard.
+model EmailSettings {
+  id        Int      @id @default(1)
+  host      String?
+  port      Int?     @default(465)
+  user      String?  // the sending email address — also the From address
+  pass      String?  // SMTP password / app password
+  fromName  String?  @default("Fresh Dry Fruits")
+  updatedAt DateTime @updatedAt
+}
+
 model User {
   id               String    @id @default(cuid())
   email            String    @unique
