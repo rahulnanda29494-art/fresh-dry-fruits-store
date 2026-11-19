@@ -628,6 +628,7 @@ function EmailSettings({ token, showToast }) {
   const [pass, setPass] = useState('');
   const [testTo, setTestTo] = useState('');
   const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState(null); // { ok, text } — persistent inline status
 
   useEffect(() => { api.getEmailConfig(token).then(setCfg).catch((e) => showToast(e.message)); }, [token]);
   if (!cfg) return <div style={{ ...card, padding: 36, textAlign: 'center', color: '#8a7a63' }}>Loading…</div>;
@@ -638,20 +639,24 @@ function EmailSettings({ token, showToast }) {
   const btn = (primary) => ({ fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 13, padding: '11px 22px', borderRadius: 100, cursor: busy ? 'default' : 'pointer', border: primary ? 'none' : '1.5px solid #6A4E2F', background: primary ? '#6A4E2F' : '#fff', color: primary ? '#fff' : '#6A4E2F', opacity: busy ? 0.6 : 1 });
 
   async function save() {
-    setBusy(true);
+    setBusy(true); setResult(null);
     try {
       const payload = { host: cfg.host, port: Number(cfg.port) || 465, user: cfg.user, fromName: cfg.fromName };
       if (pass) payload.pass = pass;
       const r = await api.saveEmailConfig(payload, token);
       setCfg((c) => ({ ...c, hasPassword: c.hasPassword || Boolean(pass), enabled: r.enabled }));
       setPass('');
-      showToast(r.enabled ? 'Saved — email is active ✅' : 'Saved (fill in all fields to activate)');
-    } catch (e) { showToast(e.message); } finally { setBusy(false); }
+      setResult({ ok: true, text: r.enabled ? 'Settings saved — email is active. Send a test below to confirm.' : 'Saved, but email isn’t active yet — make sure host, email and password are all filled in.' });
+    } catch (e) { setResult({ ok: false, text: 'Could not save: ' + e.message }); } finally { setBusy(false); }
   }
   async function test() {
-    setBusy(true);
-    try { const r = await api.testEmailConfig({ to: testTo.trim() || undefined }, token); showToast('Test email sent to ' + r.to + ' ✅'); }
-    catch (e) { showToast(e.message); } finally { setBusy(false); }
+    setBusy(true); setResult(null);
+    try {
+      const r = await api.testEmailConfig({ to: testTo.trim() || undefined }, token);
+      setResult({ ok: true, text: `Test email sent to ${r.to}. Check the inbox (and Spam/Promotions the first time).` });
+    } catch (e) {
+      setResult({ ok: false, text: e.message });
+    } finally { setBusy(false); }
   }
 
   return (
@@ -681,6 +686,12 @@ function EmailSettings({ token, showToast }) {
           <button onClick={test} disabled={busy} style={btn(false)}>Send test</button>
         </div>
       </div>
+
+      {result && (
+        <div style={{ marginTop: 16, padding: '12px 14px', borderRadius: 10, fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: result.ok ? '#EAF3DC' : '#FBE9E7', color: result.ok ? '#3f5e22' : '#A33A2A', border: '1px solid ' + (result.ok ? 'rgba(76,107,42,.25)' : 'rgba(163,58,42,.25)') }}>
+          <b>{result.ok ? '✅ ' : '⚠️ '}</b>{result.text}
+        </div>
+      )}
 
       <p style={{ fontSize: 12, color: '#a08a63', marginTop: 18, lineHeight: 1.6 }}>
         <b>Gmail:</b> host <code>smtp.gmail.com</code>, port <code>465</code>, your Gmail address, and a 16-character
