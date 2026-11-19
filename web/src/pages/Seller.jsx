@@ -629,11 +629,17 @@ function EmailSettings({ token, showToast }) {
   const [testTo, setTestTo] = useState('');
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null); // { ok, text } — persistent inline status
+  const [provider, setProvider] = useState('gmail');
 
-  useEffect(() => { api.getEmailConfig(token).then(setCfg).catch((e) => showToast(e.message)); }, [token]);
+  useEffect(() => { api.getEmailConfig(token).then((c) => { setCfg(c); if (/brevo|sendinblue/i.test(c.host || '')) setProvider('brevo'); else if (c.host && !/gmail/i.test(c.host)) setProvider('other'); }).catch((e) => showToast(e.message)); }, [token]);
   if (!cfg) return <div style={{ ...card, padding: 36, textAlign: 'center', color: '#8a7a63' }}>Loading…</div>;
 
   const set = (f, v) => setCfg((c) => ({ ...c, [f]: v }));
+  const PRESETS = { gmail: { host: 'smtp.gmail.com', port: 465 }, brevo: { host: 'smtp-relay.brevo.com', port: 587 } };
+  function pickProvider(p) {
+    setProvider(p);
+    if (PRESETS[p]) setCfg((c) => ({ ...c, host: PRESETS[p].host, port: PRESETS[p].port }));
+  }
   const fld = { fontFamily: "'Poppins',sans-serif", fontSize: 13.5, padding: '12px 14px', borderRadius: 10, border: '1px solid rgba(106,78,47,.2)', outline: 'none', width: '100%' };
   const lbl = { fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 10.5, letterSpacing: '.06em', color: '#8a7a63', textTransform: 'uppercase', marginBottom: 5, display: 'block' };
   const btn = (primary) => ({ fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 13, padding: '11px 22px', borderRadius: 100, cursor: busy ? 'default' : 'pointer', border: primary ? 'none' : '1.5px solid #6A4E2F', background: primary ? '#6A4E2F' : '#fff', color: primary ? '#fff' : '#6A4E2F', opacity: busy ? 0.6 : 1 });
@@ -668,13 +674,21 @@ function EmailSettings({ token, showToast }) {
         {cfg.enabled ? '✅ Email is active — customers receive emails.' : '⚠️ Not active yet — fill in the details below and Save.'}
       </div>
 
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        <span style={{ ...lbl, marginBottom: 0, alignSelf: 'center' }}>Provider</span>
+        {[['gmail', 'Gmail'], ['brevo', 'Brevo'], ['other', 'Other']].map(([p, lab]) => (
+          <button key={p} type="button" onClick={() => pickProvider(p)} style={{ fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 12.5, padding: '7px 16px', borderRadius: 100, cursor: 'pointer', border: '1.5px solid ' + (provider === p ? '#6A4E2F' : 'rgba(106,78,47,.25)'), background: provider === p ? '#6A4E2F' : '#fff', color: provider === p ? '#fff' : '#6A4E2F' }}>{lab}</button>
+        ))}
+      </div>
+
       <div style={{ display: 'grid', gap: 14 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
-          <div><label style={lbl}>SMTP host</label><input value={cfg.host} onChange={(e) => set('host', e.target.value)} placeholder="smtp.gmail.com" style={fld} /></div>
-          <div><label style={lbl}>Port</label><input type="number" value={cfg.port} onChange={(e) => set('port', e.target.value)} placeholder="465" style={fld} /></div>
+          <div><label style={lbl}>SMTP host</label><input value={cfg.host} onChange={(e) => set('host', e.target.value)} placeholder="smtp-relay.brevo.com" style={fld} /></div>
+          <div><label style={lbl}>Port</label><input type="number" value={cfg.port} onChange={(e) => set('port', e.target.value)} placeholder="587" style={fld} /></div>
         </div>
-        <div><label style={lbl}>Your email address (sends from)</label><input type="email" value={cfg.user} onChange={(e) => set('user', e.target.value)} placeholder="store@gmail.com" style={fld} /></div>
-        <div><label style={lbl}>Password / app password</label><input type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder={cfg.hasPassword ? '•••••••• (saved — leave blank to keep)' : 'App password'} style={fld} /></div>
+        <div><label style={lbl}>{provider === 'brevo' ? 'SMTP login (from Brevo)' : 'SMTP username / email'}</label><input value={cfg.user} onChange={(e) => set('user', e.target.value)} placeholder={provider === 'brevo' ? 'your Brevo login' : 'store@gmail.com'} style={fld} /></div>
+        <div><label style={lbl}>{provider === 'brevo' ? 'SMTP key (Brevo)' : 'Password / app password'}</label><input type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder={cfg.hasPassword ? '•••••••• (saved — leave blank to keep)' : (provider === 'brevo' ? 'Brevo SMTP key' : 'App password')} style={fld} /></div>
+        <div><label style={lbl}>From email (sender customers see)</label><input type="email" value={cfg.fromEmail || ''} onChange={(e) => set('fromEmail', e.target.value)} placeholder={provider === 'gmail' ? '(blank = your Gmail address)' : 'you@yourstore.com — a verified sender'} style={fld} /></div>
         <div><label style={lbl}>From name</label><input value={cfg.fromName} onChange={(e) => set('fromName', e.target.value)} placeholder="Fresh Dry Fruits" style={fld} /></div>
         <div><button onClick={save} disabled={busy} style={btn(true)}>Save settings</button></div>
       </div>
@@ -693,10 +707,22 @@ function EmailSettings({ token, showToast }) {
         </div>
       )}
 
-      <p style={{ fontSize: 12, color: '#a08a63', marginTop: 18, lineHeight: 1.6 }}>
-        <b>Gmail:</b> host <code>smtp.gmail.com</code>, port <code>465</code>, your Gmail address, and a 16-character
-        <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" style={{ color: '#6A4E2F' }}> App Password</a> (not your normal password; requires 2-Step Verification).
-      </p>
+      {provider === 'brevo' && (
+        <p style={{ fontSize: 12, color: '#a08a63', marginTop: 18, lineHeight: 1.7 }}>
+          <b>Brevo (recommended — no 2FA):</b> free account at <a href="https://www.brevo.com" target="_blank" rel="noreferrer" style={{ color: '#6A4E2F' }}>brevo.com</a> → <b>SMTP &amp; API → SMTP</b> tab. Copy the <b>Login</b> and generate an <b>SMTP key</b> (that's the password). Then under <b>Senders, Domains &amp; IPs → Senders</b>, add &amp; verify your store email and put it in <b>From email</b>. 300 emails/day free.
+        </p>
+      )}
+      {provider === 'gmail' && (
+        <p style={{ fontSize: 12, color: '#a08a63', marginTop: 18, lineHeight: 1.7 }}>
+          <b>Gmail:</b> host <code>smtp.gmail.com</code>, port <code>465</code>, your Gmail as the login, and a 16-character
+          <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" style={{ color: '#6A4E2F' }}> App Password</a> (requires 2-Step Verification). Leave From email blank to use your Gmail.
+        </p>
+      )}
+      {provider === 'other' && (
+        <p style={{ fontSize: 12, color: '#a08a63', marginTop: 18, lineHeight: 1.7 }}>
+          Enter your provider's SMTP host, port, login and password, plus a <b>verified</b> From email.
+        </p>
+      )}
     </div>
   );
 }

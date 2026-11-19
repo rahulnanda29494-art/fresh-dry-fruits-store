@@ -12,8 +12,9 @@ model EmailSettings {
   id        Int      @id @default(1)
   host      String?
   port      Int?     @default(465)
-  user      String?  // the sending email address — also the From address
-  pass      String?  // SMTP password / app password
+  user      String?  // SMTP login / username
+  pass      String?  // SMTP password / app password / key
+  fromEmail String?  // verified sender address shown to customers (defaults to user)
   fromName  String?  @default("Fresh Dry Fruits")
   updatedAt DateTime @updatedAt
 }

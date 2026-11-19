@@ -13,6 +13,7 @@ const emailConfigSchema = z.object({
   port: z.coerce.number().int().min(1).max(65535).optional(),
   user: z.string().trim().max(200).optional(),
   pass: z.string().max(400).optional(),
+  fromEmail: z.string().trim().max(200).optional(),
   fromName: z.string().trim().max(120).optional(),
 });
 
@@ -22,6 +23,7 @@ router.get('/email-config', attachUser, requireAdmin, asyncHandler(async (_req, 
     host: s?.host || '',
     port: s?.port || 465,
     user: s?.user || '',
+    fromEmail: s?.fromEmail || '',
     fromName: s?.fromName || 'Fresh Dry Fruits',
     hasPassword: Boolean(s?.pass),
     enabled: await emailEnabled(),
@@ -32,7 +34,7 @@ router.put('/email-config', attachUser, requireAdmin, asyncHandler(async (req, r
   const parsed = emailConfigSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0].message });
   const d = parsed.data;
-  const data = { host: d.host || null, port: d.port || 465, user: d.user || null, fromName: d.fromName || null };
+  const data = { host: d.host || null, port: d.port || 465, user: d.user || null, fromEmail: d.fromEmail || null, fromName: d.fromName || null };
   if (d.pass) data.pass = d.pass; // only overwrite the password when a new one is entered
   await prisma.emailSettings.upsert({ where: { id: 1 }, update: data, create: { id: 1, ...data } });
   invalidate();

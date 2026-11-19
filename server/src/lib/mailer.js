@@ -15,7 +15,7 @@ async function resolveConfig() {
   const pass = (s && s.pass) || process.env.SMTP_PASS || null;
   const port = Number((s && s.port) || process.env.SMTP_PORT || 465);
   const fromName = (s && s.fromName) || 'Fresh Dry Fruits';
-  const fromEmail = user || process.env.MAIL_FROM || null;
+  const fromEmail = (s && s.fromEmail) || user || process.env.MAIL_FROM || null;
   if (!host || !user || !pass || !fromEmail) return null;
   return { host, port, user, pass, from: fromName ? `${fromName} <${fromEmail}>` : fromEmail };
 }
